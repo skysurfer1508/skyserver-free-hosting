@@ -48,10 +48,18 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Home from './pages/Home';
+import AdminLogin from './pages/AdminLogin';
+import Admin from './pages/Admin';
+import AdminRequests from './pages/AdminRequests';
+import AdminSettings from './pages/AdminSettings';
 
 
 export const PAGES = {
     "Home": Home,
+    "AdminLogin": AdminLogin,
+    "Admin": Admin,
+    "AdminRequests": AdminRequests,
+    "AdminSettings": AdminSettings,
 }
 
 export const pagesConfig = {
