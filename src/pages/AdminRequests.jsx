@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import RequestsTable from '@/components/admin/RequestsTable';
+import RequestDetailsModal from '@/components/admin/RequestDetailsModal';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,6 +17,7 @@ export default function AdminRequests() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
@@ -109,10 +111,20 @@ export default function AdminRequests() {
             <RequestsTable 
               requests={filteredRequests} 
               onApprove={handleApprove} 
-              onReject={handleReject} 
+              onReject={handleReject}
+              onRowClick={setSelectedRequest}
             />
           )}
         </div>
+
+        {/* Details Modal */}
+        <RequestDetailsModal
+          request={selectedRequest}
+          isOpen={!!selectedRequest}
+          onClose={() => setSelectedRequest(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
 
         {/* Results count */}
         <p className="text-slate-500 text-sm mt-4">

@@ -17,7 +17,7 @@ const statusConfig = {
   rejected: { label: 'Rejected', color: 'bg-red-500/10 text-red-400 border-red-500/20', icon: XCircle },
 };
 
-export default function RequestsTable({ requests, onApprove, onReject, showActions = true }) {
+export default function RequestsTable({ requests, onApprove, onReject, showActions = true, onRowClick }) {
   if (!requests || requests.length === 0) {
     return (
       <div className="text-center py-12 text-slate-500">
@@ -51,7 +51,8 @@ export default function RequestsTable({ requests, onApprove, onReject, showActio
             return (
               <tr 
                 key={request.id} 
-                className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${isRejected ? 'opacity-50' : ''}`}
+                onClick={() => onRowClick?.(request)}
+                className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${isRejected ? 'opacity-50' : ''} ${onRowClick ? 'cursor-pointer' : ''}`}
               >
                 <td className="py-4 px-4 text-slate-300 text-sm">
                   {format(new Date(request.created_date), 'MMM d, yyyy')}
@@ -81,13 +82,16 @@ export default function RequestsTable({ requests, onApprove, onReject, showActio
                   </Badge>
                 </td>
                 {showActions && (
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-2">
                       {request.status === 'pending' && (
                         <>
                           <Button
                             size="sm"
-                            onClick={() => onApprove(request.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onApprove(request.id);
+                            }}
                             className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20"
                           >
                             <Check className="w-4 h-4 mr-1" />
@@ -96,7 +100,10 @@ export default function RequestsTable({ requests, onApprove, onReject, showActio
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onReject(request.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onReject(request.id);
+                            }}
                             className="text-red-400 hover:bg-red-500/10 hover:text-red-400"
                           >
                             <X className="w-4 h-4 mr-1" />

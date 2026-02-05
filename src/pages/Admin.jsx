@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import StatsCard from '@/components/admin/StatsCard';
 import RequestsTable from '@/components/admin/RequestsTable';
+import RequestDetailsModal from '@/components/admin/RequestDetailsModal';
 import { Inbox, Clock, Zap, XCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 export default function Admin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [selectedRequest, setSelectedRequest] = React.useState(null);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
@@ -97,7 +99,8 @@ export default function Admin() {
             <RequestsTable 
               requests={recentPending} 
               onApprove={handleApprove} 
-              onReject={handleReject} 
+              onReject={handleReject}
+              onRowClick={setSelectedRequest}
             />
           ) : (
             <div className="p-12 text-center text-slate-500">
@@ -105,6 +108,15 @@ export default function Admin() {
             </div>
           )}
         </div>
+
+        {/* Details Modal */}
+        <RequestDetailsModal
+          request={selectedRequest}
+          isOpen={!!selectedRequest}
+          onClose={() => setSelectedRequest(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       </main>
     </div>
   );
