@@ -1,10 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Server, ExternalLink, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [systemStatus, setSystemStatus] = useState('operational');
+
+  useEffect(() => {
+    // Load system status
+    const storedStatus = localStorage.getItem('systemStatus') || 'operational';
+    setSystemStatus(storedStatus);
+
+    // Listen for status changes
+    const handleStatusChange = () => {
+      const newStatus = localStorage.getItem('systemStatus') || 'operational';
+      setSystemStatus(newStatus);
+    };
+
+    window.addEventListener('systemStatusChanged', handleStatusChange);
+    return () => window.removeEventListener('systemStatusChanged', handleStatusChange);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-lg border-b border-slate-800/50">
