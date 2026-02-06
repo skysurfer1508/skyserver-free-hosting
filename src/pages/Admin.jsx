@@ -29,24 +29,15 @@ export default function Admin() {
   const { data: requests = [], isLoading, error } = useQuery({
     queryKey: ['serverRequests'],
     queryFn: async () => {
-      // Load from localStorage instead of backend
-      const stored = localStorage.getItem('serverRequests');
-      const requests = stored ? JSON.parse(stored) : [];
+      const requests = await base44.entities.ServerRequest.list();
       return requests.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     retry: false,
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }) => {
-      // Update in localStorage
-      const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-      const index = allRequests.findIndex(r => r.id === id);
-      if (index !== -1) {
-        allRequests[index].status = status;
-        localStorage.setItem('serverRequests', JSON.stringify(allRequests));
-      }
-      return Promise.resolve();
+    mutationFn: ({ id, status, credentials }) => {
+      return base44.entities.ServerRequest.update(id, { status, credentials });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
@@ -59,12 +50,8 @@ export default function Admin() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => {
-      // Delete from localStorage
-      const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-      const filtered = allRequests.filter(r => r.id !== id);
-      localStorage.setItem('serverRequests', JSON.stringify(filtered));
-      return Promise.resolve();
+    mutationFn: async (id) => {
+      await base44.entities.ServerRequest.delete(id);
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
@@ -81,87 +68,57 @@ export default function Admin() {
     navigate(createPageUrl('AdminLogin'));
   };
 
-  const handleApprove = (id) => {
+  const handleApprove = async (id) => {
     const request = requests.find(r => r.id === id);
     if (!request) return;
 
-    // Check available slots
-    const storedSlots = localStorage.getItem('availableSlots');
-    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
-    
-    if (slots[request.game] <= 0) {
-      toast.error(`No slots available for ${request.game}!`);
-      return;
-    }
+    // Check available slots from backend
+    try {
+      const configs = await base44.entities.SystemConfig.list();
+      if (configs && configs.length > 0) {
+        const config = configs[0];
+        const availableSlots = config.totalSlots - config.claimedSlots;
+        
+        if (availableSlots <= 0) {
+          toast.error('No slots available!');
+          return;
+        }
+      }
 
-    // Open provisioning modal instead of approving immediately
-    setProvisioningRequest(request);
+      // Open provisioning modal
+      setProvisioningRequest(request);
+    } catch (error) {
+      console.error('Failed to check slots:', error);
+      toast.error('Failed to check available slots');
+    }
   };
 
   const handleProvisioningConfirm = async (credentials) => {
     const request = provisioningRequest;
     
-    // CRITICAL: Update user's data in users array FIRST
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex(u => u.email === request.email);
-    
-    if (userIndex === -1) {
-      toast.error('User not found!');
-      return;
-    }
-
-    // Find and update the user's request
-    if (!users[userIndex].requests) {
-      users[userIndex].requests = [];
-    }
-    
-    const reqIndex = users[userIndex].requests.findIndex(r => r.id === request.id);
-    if (reqIndex !== -1) {
-      users[userIndex].requests[reqIndex].status = 'active';
-      users[userIndex].requests[reqIndex].credentials = credentials;
-    } else {
-      // If request doesn't exist in user's array, add it
-      users[userIndex].requests.push({
-        ...request,
+    try {
+      // Update request status and credentials
+      await base44.entities.ServerRequest.update(request.id, {
         status: 'active',
         credentials
       });
+
+      // No need to increment claimedSlots - it was already incremented when request was created
+
+      queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
+      setProvisioningRequest(null);
+      toast.success('Server activated successfully!');
+    } catch (error) {
+      console.error('Failed to activate server:', error);
+      toast.error('Failed to activate server');
     }
-    
-    // Save updated users array
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Update global requests list
-    const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-    const index = allRequests.findIndex(r => r.id === request.id);
-    if (index !== -1) {
-      allRequests[index].status = 'active';
-      allRequests[index].credentials = credentials;
-      localStorage.setItem('serverRequests', JSON.stringify(allRequests));
-    }
-    
-    // Store credentials separately for easier access
-    const storedRequests = JSON.parse(localStorage.getItem('serverRequestsWithCreds') || '{}');
-    storedRequests[request.id] = credentials;
-    localStorage.setItem('serverRequestsWithCreds', JSON.stringify(storedRequests));
-
-    // Decrement slot count
-    const storedSlots = localStorage.getItem('availableSlots');
-    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
-    slots[request.game] = Math.max(0, slots[request.game] - 1);
-    localStorage.setItem('availableSlots', JSON.stringify(slots));
-    window.dispatchEvent(new Event('slotsUpdated'));
-
-    queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
-    setProvisioningRequest(null);
-    toast.success('Server activated successfully!');
   };
 
   const handleReject = (id) => {
     updateMutation.mutate({ id, status: 'rejected' });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to terminate this server? This action cannot be undone.')) {
       return;
     }
@@ -169,16 +126,22 @@ export default function Admin() {
     const request = requests.find(r => r.id === id);
     if (!request) return;
 
-    // Increment slot count back
-    const storedSlots = localStorage.getItem('availableSlots');
-    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
-    
-    slots[request.game] = (slots[request.game] || 0) + 1;
-    localStorage.setItem('availableSlots', JSON.stringify(slots));
-    window.dispatchEvent(new Event('slotsUpdated'));
+    try {
+      // Decrement claimed slots
+      const configs = await base44.entities.SystemConfig.list();
+      if (configs && configs.length > 0) {
+        const config = configs[0];
+        await base44.entities.SystemConfig.update(config.id, {
+          claimedSlots: Math.max(0, config.claimedSlots - 1)
+        });
+      }
 
-    // Delete request
-    deleteMutation.mutate(id);
+      // Delete request
+      deleteMutation.mutate(id);
+    } catch (error) {
+      console.error('Failed to delete server:', error);
+      toast.error('Failed to delete server');
+    }
   };
 
   // Calculate stats - safely handle empty arrays
