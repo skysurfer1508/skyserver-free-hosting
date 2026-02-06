@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 export default function Admin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedRequest, setSelectedRequest] = React.useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
