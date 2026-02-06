@@ -52,6 +52,8 @@ import AdminLogin from './pages/AdminLogin';
 import AdminRequests from './pages/AdminRequests';
 import AdminSettings from './pages/AdminSettings';
 import Home from './pages/Home';
+import Register from './pages/Register';
+import UserDashboard from './pages/UserDashboard';
 
 
 export const PAGES = {
@@ -60,6 +62,8 @@ export const PAGES = {
     "AdminRequests": AdminRequests,
     "AdminSettings": AdminSettings,
     "Home": Home,
+    "Register": Register,
+    "UserDashboard": UserDashboard,
 }
 
 export const pagesConfig = {

@@ -6,8 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from '@/api/base44Client';
-import { Server, Send, CheckCircle, Loader2, Sparkles, Clock } from 'lucide-react';
+import { Server, Send, CheckCircle, Loader2, Sparkles, Clock, LogIn, UserPlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
+import { AuthService } from '@/utils/auth';
 
 const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess }, ref) => {
   const [formData, setFormData] = useState({
@@ -23,6 +26,17 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [systemStatus, setSystemStatus] = useState('operational');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    // Check authentication
+    const authenticated = AuthService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    if (authenticated) {
+      setCurrentUser(AuthService.getCurrentUser());
+    }
+  }, []);
 
   useEffect(() => {
     if (selectedGame) {
@@ -70,7 +84,14 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       ? formData 
       : { ...formData, minecraft_type: undefined, minecraft_version: undefined };
     
-    await base44.entities.ServerRequest.create(submitData);
+    const createdRequest = await base44.entities.ServerRequest.create(submitData);
+    
+    // Add request to user's data
+    AuthService.addRequestToUser({
+      ...submitData,
+      id: createdRequest.id,
+      status: 'pending'
+    });
     
     localStorage.setItem('hasRequestedServer', 'true');
     
@@ -78,7 +99,72 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     setIsSubmitted(true);
     onSubmitSuccess?.();
     toast.success('Request submitted successfully!');
+    
+    // Redirect to dashboard
+    setTimeout(() => {
+      window.location.href = createPageUrl('UserDashboard');
+    }, 1500);
   };
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <section ref={ref} id="request-form" className="relative py-32 bg-slate-950">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-sky-900/20 via-transparent to-transparent" />
+        
+        <div className="relative max-w-2xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              Authentication Required
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Get Your Free Server
+            </h2>
+            <p className="text-slate-400 mb-8 max-w-md mx-auto">
+              Create an account or sign in to request your free game server
+            </p>
+
+            <div className="relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-500 to-cyan-500 rounded-2xl blur opacity-20" />
+              
+              <div className="relative p-8 rounded-2xl bg-slate-900 border border-slate-800">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white font-semibold"
+                  >
+                    <Link to={createPageUrl('Register')}>
+                      <UserPlus className="w-5 h-5 mr-2" />
+                      Create Account
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/50"
+                  >
+                    <Link to={createPageUrl('Login')}>
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Sign In
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
 
   if (isSubmitted || hasRequested) {
     return (

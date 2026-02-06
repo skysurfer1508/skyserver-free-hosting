@@ -1,12 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Server, ExternalLink, Menu, X, ChevronDown } from 'lucide-react';
+import { Server, ExternalLink, Menu, X, ChevronDown, LogIn, User, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { AuthService } from '@/utils/auth';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [gamesAccordionOpen, setGamesAccordionOpen] = useState(false);
   const [systemStatus, setSystemStatus] = useState('operational');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = () => {
+      const authenticated = AuthService.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        setCurrentUser(AuthService.getCurrentUser());
+      }
+    };
+
+    checkAuth();
+    // Listen for auth changes
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
 
   const games = [
     { name: 'Minecraft', id: 'minecraft' },
@@ -70,24 +91,42 @@ export default function Header() {
               </span>
             </div>
 
-            <Button
-              asChild
-              variant="ghost"
-              className="text-slate-300 hover:text-white hover:bg-slate-800/50 hidden sm:flex"
-            >
-              <a href="https://panel.skyserver1508.org" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Panel Login
-              </a>
-            </Button>
-            <Button
-              onClick={() => document.getElementById('request-form')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white font-semibold"
-            >
-              <Server className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Request Server</span>
-              <span className="sm:hidden">Request</span>
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="text-slate-300 hover:text-white hover:bg-slate-800/50 hidden sm:flex"
+                >
+                  <Link to={createPageUrl('UserDashboard')}>
+                    <User className="w-4 h-4 mr-2" />
+                    My Dashboard
+                  </Link>
+                </Button>
+                <Button
+                  onClick={() => {
+                    AuthService.logout();
+                    setIsAuthenticated(false);
+                    setCurrentUser(null);
+                    window.location.href = createPageUrl('Home');
+                  }}
+                  variant="ghost"
+                  className="text-slate-300 hover:text-white hover:bg-slate-800/50"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                asChild
+                className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white font-semibold"
+              >
+                <Link to={createPageUrl('Login')}>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 
