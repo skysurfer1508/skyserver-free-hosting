@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Server, LayoutDashboard, Inbox, Settings, LogOut } from 'lucide-react';
+import { Server, LayoutDashboard, Inbox, Settings, LogOut, Users } from 'lucide-react';
 
 const navItems = [
   { name: 'Overview', icon: LayoutDashboard, page: 'AdminOverview' },
