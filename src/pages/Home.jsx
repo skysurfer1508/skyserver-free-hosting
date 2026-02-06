@@ -17,20 +17,44 @@ export default function Home() {
   const [showMaintenanceBanner, setShowMaintenanceBanner] = useState(false);
 
   useEffect(() => {
-    const requested = localStorage.getItem('hasRequestedServer') === 'true';
-    setHasRequested(requested);
+    // Check if user has requested a server
+    const checkRequests = async () => {
+      try {
+        const authenticated = await base44.auth.isAuthenticated();
+        if (authenticated) {
+          const user = await base44.auth.me();
+          const requests = await base44.entities.ServerRequest.filter(
+            { created_by: user.email },
+            '-created_date',
+            1
+          );
+          setHasRequested(requests && requests.length > 0);
+        }
+      } catch (error) {
+        console.error('Failed to check requests:', error);
+      }
+    };
+
+    checkRequests();
   }, []);
 
-  // Check maintenance status
+  // Check maintenance status from backend
   useEffect(() => {
-    const updateMaintenanceStatus = () => {
-      const status = localStorage.getItem('systemStatus') || 'operational';
-      setShowMaintenanceBanner(status === 'maintenance');
+    const updateMaintenanceStatus = async () => {
+      try {
+        const configs = await base44.entities.SystemConfig.list();
+        if (configs && configs.length > 0) {
+          setShowMaintenanceBanner(configs[0].isMaintenanceMode);
+        }
+      } catch (error) {
+        console.error('Failed to load maintenance status:', error);
+      }
     };
 
     updateMaintenanceStatus();
-    window.addEventListener('systemStatusChanged', updateMaintenanceStatus);
-    return () => window.removeEventListener('systemStatusChanged', updateMaintenanceStatus);
+    // Poll every 30 seconds for updates
+    const interval = setInterval(updateMaintenanceStatus, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const scrollToForm = () => {

@@ -24,10 +24,9 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [systemStatus, setSystemStatus] = useState('operational');
+  const [systemConfig, setSystemConfig] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [availability, setAvailability] = useState({ minecraft: 5, terraria: 5, satisfactory: 3 });
 
   const gamesList = [
     { name: 'minecraft', displayName: 'Minecraft (Java & Bedrock)' },
@@ -50,24 +49,20 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       }
     };
 
+    // Load system config from backend
+    const loadConfig = async () => {
+      try {
+        const configs = await base44.entities.SystemConfig.list();
+        if (configs && configs.length > 0) {
+          setSystemConfig(configs[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load config:', error);
+      }
+    };
+
     checkAuth();
-
-    // Load availability from same source as GamesSection
-    const loadAvailability = () => {
-      const stored = localStorage.getItem('availableSlots');
-      const data = stored ? JSON.parse(stored) : { minecraft: 5, terraria: 5, satisfactory: 3 };
-      setAvailability(data);
-    };
-
-    loadAvailability();
-
-    // Listen for slot updates from Admin Panel
-    const handleSlotsUpdate = () => {
-      loadAvailability();
-    };
-
-    window.addEventListener('slotsUpdated', handleSlotsUpdate);
-    return () => window.removeEventListener('slotsUpdated', handleSlotsUpdate);
+    loadConfig();
   }, []);
 
   useEffect(() => {
@@ -75,21 +70,6 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       setFormData(prev => ({ ...prev, game: selectedGame }));
     }
   }, [selectedGame]);
-
-  useEffect(() => {
-    // Load system status
-    const storedStatus = localStorage.getItem('systemStatus') || 'operational';
-    setSystemStatus(storedStatus);
-
-    // Listen for status changes
-    const handleStatusChange = () => {
-      const newStatus = localStorage.getItem('systemStatus') || 'operational';
-      setSystemStatus(newStatus);
-    };
-
-    window.addEventListener('systemStatusChanged', handleStatusChange);
-    return () => window.removeEventListener('systemStatusChanged', handleStatusChange);
-  }, []);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -120,17 +100,12 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       // Create request in backend database
       await base44.entities.ServerRequest.create(submitData);
 
-      // Decrement available slots for the selected game
-      const currentAvailability = JSON.parse(localStorage.getItem('availableSlots') || '{}');
-      if (currentAvailability[formData.game] !== undefined && currentAvailability[formData.game] > 0) {
-        currentAvailability[formData.game] -= 1;
-        localStorage.setItem('availableSlots', JSON.stringify(currentAvailability));
-        setAvailability(currentAvailability);
-        // Trigger event for other components
-        window.dispatchEvent(new Event('slotsUpdated'));
+      // Increment claimed slots
+      if (systemConfig) {
+        await base44.entities.SystemConfig.update(systemConfig.id, {
+          claimedSlots: systemConfig.claimedSlots + 1
+        });
       }
-
-      localStorage.setItem('hasRequestedServer', 'true');
 
       setIsSubmitted(true);
       onSubmitSuccess?.();
@@ -220,8 +195,8 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     );
   }
 
-  const totalSlotsAvailable = Object.values(availability).reduce((sum, slots) => sum + slots, 0);
-  const allSoldOut = totalSlotsAvailable === 0;
+  const availableSlots = systemConfig ? systemConfig.totalSlots - systemConfig.claimedSlots : 0;
+  const allSoldOut = availableSlots <= 0;
 
   return (
     <section ref={ref} id="request-form" className="relative py-32 bg-slate-950">
@@ -342,10 +317,10 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                         <SelectItem 
                           key={game.name}
                           value={game.name} 
-                          disabled={availability[game.name] === 0}
+                          disabled={allSoldOut}
                           className="text-white hover:bg-slate-700"
                         >
-                          {game.displayName} {availability[game.name] === 0 ? '(SOLD OUT)' : `(${availability[game.name]} slots left)`}
+                          {game.displayName}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -429,7 +404,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isSubmitting || systemStatus === 'maintenance' || allSoldOut}
+                disabled={isSubmitting || (systemConfig && systemConfig.isMaintenanceMode) || allSoldOut}
                 className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white rounded-xl shadow-lg shadow-sky-500/25 transition-all duration-300 hover:shadow-sky-500/40 disabled:opacity-50"
               >
                 {isSubmitting ? (
@@ -437,7 +412,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Sending Request...
                   </span>
-                ) : systemStatus === 'maintenance' ? (
+                ) : (systemConfig && systemConfig.isMaintenanceMode) ? (
                   <span className="flex items-center justify-center gap-2">
                     <Clock className="w-5 h-5" />
                     Requests Temporarily Disabled
@@ -450,7 +425,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <Send className="w-5 h-5" />
-                    Send Request
+                    Send Request ({availableSlots} slots left)
                   </span>
                 )}
               </Button>

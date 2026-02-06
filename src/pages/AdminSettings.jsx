@@ -12,12 +12,10 @@ import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import SyncWarningBanner from '@/components/SyncWarningBanner';
 
-const DEFAULT_SLOTS = { minecraft: 5, terraria: 5, satisfactory: 3 };
-
 export default function AdminSettings() {
   const navigate = useNavigate();
-  const [slots, setSlots] = useState(DEFAULT_SLOTS);
-  const [systemStatus, setSystemStatus] = useState('operational');
+  const [totalSlots, setTotalSlots] = useState(0);
+  const [systemConfig, setSystemConfig] = useState(null);
   const [newPassword, setNewPassword] = useState('');
 
   useEffect(() => {
@@ -26,36 +24,65 @@ export default function AdminSettings() {
       navigate(createPageUrl('AdminLogin'));
     }
 
-    // Load slots from localStorage
-    const storedSlots = localStorage.getItem('availableSlots');
-    if (storedSlots) {
-      setSlots(JSON.parse(storedSlots));
-    } else {
-      localStorage.setItem('availableSlots', JSON.stringify(DEFAULT_SLOTS));
-    }
-
-    // Load system status
-    const storedStatus = localStorage.getItem('systemStatus') || 'operational';
-    setSystemStatus(storedStatus);
+    // Load config from backend
+    loadConfig();
   }, [navigate]);
+
+  const loadConfig = async () => {
+    try {
+      const configs = await base44.entities.SystemConfig.list();
+      if (configs && configs.length > 0) {
+        setSystemConfig(configs[0]);
+        setTotalSlots(configs[0].totalSlots);
+      } else {
+        // Create initial config
+        const newConfig = await base44.entities.SystemConfig.create({
+          configKey: 'global',
+          totalSlots: 10,
+          claimedSlots: 0,
+          isMaintenanceMode: false
+        });
+        setSystemConfig(newConfig);
+        setTotalSlots(10);
+      }
+    } catch (error) {
+      console.error('Failed to load config:', error);
+      toast.error('Failed to load settings');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('skyserver_admin_auth');
     navigate(createPageUrl('AdminLogin'));
   };
 
-  const handleSaveCapacity = () => {
-    localStorage.setItem('availableSlots', JSON.stringify(slots));
-    toast.success('Server capacity updated successfully');
-    window.dispatchEvent(new Event('slotsUpdated'));
+  const handleSaveCapacity = async () => {
+    if (!systemConfig) return;
+    try {
+      await base44.entities.SystemConfig.update(systemConfig.id, {
+        totalSlots: totalSlots
+      });
+      toast.success('Server capacity updated successfully');
+      await loadConfig();
+    } catch (error) {
+      console.error('Failed to save capacity:', error);
+      toast.error('Failed to update capacity');
+    }
   };
 
-  const handleStatusChange = (checked) => {
-    const newStatus = checked ? 'operational' : 'maintenance';
-    setSystemStatus(newStatus);
-    localStorage.setItem('systemStatus', newStatus);
-    toast.success(`System status changed to ${newStatus === 'operational' ? 'Operational' : 'Maintenance Mode'}`);
-    window.dispatchEvent(new Event('systemStatusChanged'));
+  const handleStatusChange = async (checked) => {
+    if (!systemConfig) return;
+    const isOperational = checked;
+    try {
+      await base44.entities.SystemConfig.update(systemConfig.id, {
+        isMaintenanceMode: !isOperational
+      });
+      toast.success(`System status changed to ${isOperational ? 'Operational' : 'Maintenance Mode'}`);
+      await loadConfig();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast.error('Failed to update system status');
+    }
   };
 
   const handlePasswordChange = () => {
@@ -74,17 +101,29 @@ export default function AdminSettings() {
         const confirmation = window.prompt('Type YES to confirm factory reset:');
         if (confirmation === 'YES') {
           try {
-            // Delete all ServerRequest entities from backend
+            // Delete all ServerRequest entities
             const allRequests = await base44.entities.ServerRequest.list();
             for (const request of allRequests) {
               await base44.entities.ServerRequest.delete(request.id);
             }
             
-            // Clear localStorage (admin settings, slots, etc.)
-            localStorage.clear();
+            // Reset SystemConfig
+            if (systemConfig) {
+              await base44.entities.SystemConfig.update(systemConfig.id, {
+                totalSlots: 10,
+                claimedSlots: 0,
+                isMaintenanceMode: false
+              });
+            }
             
-            toast.success('Database cleared. Reloading...');
-            setTimeout(() => window.location.reload(), 1000);
+            // Clear admin auth
+            localStorage.removeItem('skyserver_admin_auth');
+            localStorage.removeItem('adminPassword');
+            
+            toast.success('Database cleared. Redirecting...');
+            setTimeout(() => {
+              navigate(createPageUrl('AdminLogin'));
+            }, 1000);
           } catch (error) {
             console.error('Failed to clear database:', error);
             toast.error('Failed to clear database. Please try again.');
@@ -125,17 +164,18 @@ export default function AdminSettings() {
             <div className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50">
               <div>
                 <p className="text-white font-medium">
-                  {systemStatus === 'operational' ? '🟢 Systems Operational' : '🔴 Maintenance Mode'}
+                  {systemConfig && !systemConfig.isMaintenanceMode ? '🟢 Systems Operational' : '🔴 Maintenance Mode'}
                 </p>
                 <p className="text-slate-400 text-sm">
-                  {systemStatus === 'operational' 
+                  {systemConfig && !systemConfig.isMaintenanceMode
                     ? 'All services are running normally' 
                     : 'Users will see a maintenance banner'}
                 </p>
               </div>
               <Switch 
-                checked={systemStatus === 'operational'}
+                checked={systemConfig && !systemConfig.isMaintenanceMode}
                 onCheckedChange={handleStatusChange}
+                disabled={!systemConfig}
               />
             </div>
           </Card>
@@ -215,38 +255,22 @@ export default function AdminSettings() {
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Minecraft Slots</Label>
+                <Label className="text-slate-300">Total Server Slots</Label>
                 <Input 
                   type="number"
                   min="0"
-                  value={slots.minecraft}
-                  onChange={(e) => setSlots({...slots, minecraft: parseInt(e.target.value) || 0})}
+                  value={totalSlots}
+                  onChange={(e) => setTotalSlots(parseInt(e.target.value) || 0)}
                   className="bg-slate-800/50 border-slate-700 text-white"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-300">Terraria Slots</Label>
-                <Input 
-                  type="number"
-                  min="0"
-                  value={slots.terraria}
-                  onChange={(e) => setSlots({...slots, terraria: parseInt(e.target.value) || 0})}
-                  className="bg-slate-800/50 border-slate-700 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-300">Satisfactory Slots</Label>
-                <Input 
-                  type="number"
-                  min="0"
-                  value={slots.satisfactory}
-                  onChange={(e) => setSlots({...slots, satisfactory: parseInt(e.target.value) || 0})}
-                  className="bg-slate-800/50 border-slate-700 text-white"
-                />
+                <p className="text-slate-500 text-xs">
+                  Available slots: {systemConfig ? systemConfig.totalSlots - systemConfig.claimedSlots : 0}
+                </p>
               </div>
               <Button 
                 onClick={handleSaveCapacity}
-                className="w-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20"
+                disabled={!systemConfig}
+                className="w-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 disabled:opacity-50"
               >
                 Save Capacity
               </Button>
