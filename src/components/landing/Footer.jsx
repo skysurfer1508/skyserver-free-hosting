@@ -7,6 +7,13 @@ export default function Footer() {
     window.location.reload();
   };
 
+  const handleResetAllData = () => {
+    if (window.confirm('⚠️ WARNING: This will delete ALL data including users, requests, and admin settings. Continue?')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
   return (
     <footer className="relative py-12 bg-slate-950 border-t border-slate-800">
       <div className="max-w-6xl mx-auto px-6">
@@ -53,13 +60,19 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Dev Reset Button */}
-        <div className="mt-4 text-center">
+        {/* Dev Reset Buttons */}
+        <div className="mt-4 text-center flex items-center justify-center gap-4">
           <button
             onClick={handleResetStorage}
             className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
           >
             Reset Request Status
+          </button>
+          <button
+            onClick={handleResetAllData}
+            className="text-xs text-red-600 hover:text-red-400 transition-colors font-semibold"
+          >
+            🗑️ Reset All Data
           </button>
         </div>
       </div>

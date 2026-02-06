@@ -81,6 +81,10 @@ export const AuthService = {
     
     if (userIndex === -1) throw new Error('User not found');
 
+    if (!users[userIndex].requests) {
+      users[userIndex].requests = [];
+    }
+
     users[userIndex].requests.push({
       ...requestData,
       id: requestData.id || Date.now().toString(),
@@ -88,6 +92,7 @@ export const AuthService = {
     });
 
     this.saveUsers(users);
+    // Update session with fresh data
     this.setCurrentUser(users[userIndex]);
   },
 
