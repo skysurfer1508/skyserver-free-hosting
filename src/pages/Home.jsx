@@ -9,6 +9,7 @@ import FAQSection from '@/components/landing/FAQSection';
 import TechStack from '@/components/landing/TechStack';
 import Footer from '@/components/landing/Footer';
 import MaintenanceBanner from '@/components/landing/MaintenanceBanner';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 
 export default function Home() {
   const formRef = useRef(null);
@@ -71,6 +72,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <SyncWarningBanner />
       {showMaintenanceBanner && <MaintenanceBanner />}
       <Header />
       <HeroSection onCTAClick={scrollToForm} />
