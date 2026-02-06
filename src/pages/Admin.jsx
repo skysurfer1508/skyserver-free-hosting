@@ -23,10 +23,26 @@ export default function Admin() {
     }
   }, [navigate]);
 
-  const { data: requests = [], isLoading } = useQuery({
+  const { data: requests = [], isLoading, error } = useQuery({
     queryKey: ['serverRequests'],
     queryFn: () => base44.entities.ServerRequest.list('-created_date'),
+    retry: 1,
   });
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex">
+        <AdminSidebar currentPage="Admin" onLogout={handleLogout} />
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">Failed to load requests</p>
+            <p className="text-slate-500 text-sm">{error.message}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }) => base44.entities.ServerRequest.update(id, { status }),
