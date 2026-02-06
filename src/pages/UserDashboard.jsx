@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Server, LogOut, User, Mail, Clock, CheckCircle2, AlertCircle, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { Server, LogOut, User, Mail, Clock, CheckCircle2, AlertCircle, ExternalLink, Eye, EyeOff, Copy } from 'lucide-react';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { AuthService } from '@/components/auth/AuthService';
@@ -183,7 +184,7 @@ export default function UserDashboard() {
         </div>
 
         {/* Server Credentials (Only if Active) */}
-        {request && (currentStatus === 'active' || currentStatus === 'approved') && (
+        {request && currentStatus === 'active' && request.credentials && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -204,36 +205,68 @@ export default function UserDashboard() {
                 <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                   <p className="text-slate-400 text-sm mb-1">Panel URL</p>
                   <a 
-                    href="https://panel.skyserver1508.org" 
+                    href={request.credentials.panelUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-sky-400 hover:text-sky-300 font-mono text-sm flex items-center gap-2"
                   >
-                    panel.skyserver1508.org
+                    {request.credentials.panelUrl.replace('https://', '')}
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                   <p className="text-slate-400 text-sm mb-1">Username</p>
-                  <p className="text-white font-mono text-sm">{user.email}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-white font-mono text-sm">{request.credentials.username}</p>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(request.credentials.username);
+                        toast.success('Username copied!');
+                      }}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-slate-400 text-sm">Password</p>
-                    <button
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-slate-400 hover:text-white transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(request.credentials.password);
+                          toast.success('Password copied!');
+                        }}
+                        className="text-slate-400 hover:text-white transition-colors"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-slate-400 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <p className="text-white font-mono text-sm">
-                    {showPassword ? user.password : '••••••••••••'}
+                    {showPassword ? request.credentials.password : '••••••••••••'}
                   </p>
                 </div>
               </div>
+
+              <Button
+                asChild
+                className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400"
+              >
+                <a href={request.credentials.panelUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Go to Control Panel
+                </a>
+              </Button>
 
               <div className="mt-4 p-3 rounded-lg bg-sky-500/10 border border-sky-500/20">
                 <p className="text-sky-400 text-xs">

@@ -15,6 +15,7 @@ export default function Admin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [provisioningRequest, setProvisioningRequest] = useState(null);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
