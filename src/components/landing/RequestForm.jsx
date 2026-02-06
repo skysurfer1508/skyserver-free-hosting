@@ -225,12 +225,36 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     );
   }
 
+  const totalSlotsAvailable = Object.values(gameSlots).reduce((sum, slots) => sum + slots, 0);
+  const allSoldOut = totalSlotsAvailable === 0;
+
   return (
     <section ref={ref} id="request-form" className="relative py-32 bg-slate-950">
       {/* Gradient overlays */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-sky-900/20 via-transparent to-transparent" />
       
       <div className="relative max-w-2xl mx-auto px-6">
+        {/* Sold Out Alert */}
+        {allSoldOut && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-amber-400 mb-2">High Demand Alert</h3>
+                <p className="text-amber-200/90 text-sm leading-relaxed">
+                  We are sorry, but all server slots are currently fully booked. We are working hard to add more capacity soon. Please check back later or join our Discord for updates!
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
