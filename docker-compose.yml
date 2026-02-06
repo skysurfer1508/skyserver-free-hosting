@@ -9,5 +9,5 @@ services:
     # Mappt Port 8080 auf deinem Server zu Port 80 im Container
     # Du erreichst die Seite dann unter http://dein-server-ip:8080
     ports:
-      - "8080:80" 
+      - "8080:7012" 
     restart: always
