@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Server, LogOut, User, Mail, Clock, CheckCircle2, AlertCircle, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
-import { AuthService } from '../components/auth/AuthService';
+import { createPageUrl } from '@/utils';
+import { AuthService } from '@/components/auth/AuthService';
 import { Badge } from "@/components/ui/badge";
 
 export default function UserDashboard() {

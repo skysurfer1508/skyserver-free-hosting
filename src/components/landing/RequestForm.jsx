@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { base44 } from '@/api/base44Client';
 import { Server, Send, CheckCircle, Loader2, Sparkles, Clock, LogIn, UserPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../pages/utils';
+import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
-import { AuthService } from '../auth/AuthService';
+import { AuthService } from '@/components/auth/AuthService';
 
 const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess }, ref) => {
   const [formData, setFormData] = useState({
