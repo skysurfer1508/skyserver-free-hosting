@@ -39,18 +39,32 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     }
 
     // Initialize and load games array
-    const storedGames = localStorage.getItem('games');
-    if (!storedGames) {
-      const initialGames = [
-        { name: 'minecraft', displayName: 'Minecraft (Java & Bedrock)', availableSlots: 10 },
-        { name: 'satisfactory', displayName: 'Satisfactory', availableSlots: 5 },
-        { name: 'terraria', displayName: 'Terraria', availableSlots: 5 }
-      ];
-      localStorage.setItem('games', JSON.stringify(initialGames));
-      setGames(initialGames);
-    } else {
-      setGames(JSON.parse(storedGames));
-    }
+    const loadGames = () => {
+      const storedGames = localStorage.getItem('games');
+      if (!storedGames) {
+        const initialGames = [
+          { name: 'minecraft', displayName: 'Minecraft (Java & Bedrock)', availableSlots: 10 },
+          { name: 'satisfactory', displayName: 'Satisfactory', availableSlots: 5 },
+          { name: 'terraria', displayName: 'Terraria', availableSlots: 5 }
+        ];
+        localStorage.setItem('games', JSON.stringify(initialGames));
+        setGames(initialGames);
+      } else {
+        setGames(JSON.parse(storedGames));
+      }
+    };
+
+    loadGames();
+
+    // Listen for storage changes from Admin Panel
+    const handleStorageChange = (e) => {
+      if (e.key === 'games') {
+        loadGames();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   useEffect(() => {
