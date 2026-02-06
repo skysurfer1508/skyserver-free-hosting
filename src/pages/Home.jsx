@@ -5,6 +5,7 @@ import TrustSection from '@/components/landing/TrustSection';
 import GamesSection from '@/components/landing/GamesSection';
 import RequestForm from '@/components/landing/RequestForm';
 import FAQSection from '@/components/landing/FAQSection';
+import TechStack from '@/components/landing/TechStack';
 import Footer from '@/components/landing/Footer';
 import MaintenanceBanner from '@/components/landing/MaintenanceBanner';
 
@@ -51,6 +52,7 @@ export default function Home() {
       <GamesSection onGameSelect={handleGameSelect} hasRequested={hasRequested} />
       <RequestForm ref={formRef} selectedGame={selectedGame} hasRequested={hasRequested} onSubmitSuccess={() => setHasRequested(true)} />
       <FAQSection />
+      <TechStack />
       <Footer />
     </div>
   );
