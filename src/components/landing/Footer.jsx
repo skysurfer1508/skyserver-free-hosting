@@ -20,7 +20,7 @@ export default function Footer() {
               <span className="text-xl font-bold text-white">Skyserver</span>
             </div>
             <p className="text-slate-500 text-sm">
-              © {new Date().getFullYear()} Skyserver Student Project. All rights reserved.
+              © {new Date().getFullYear()} Skyserver • Hosted with ❤️ in Switzerland
             </p>
           </div>
 
