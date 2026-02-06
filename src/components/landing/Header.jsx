@@ -45,7 +45,7 @@ export default function Header() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-slate-300 hover:text-white"
+              className="text-slate-300 hover:text-white transition-colors"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -57,8 +57,19 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Right Side: Action Buttons */}
+          {/* Middle: Spacer */}
+          <div className="flex-grow" />
+
+          {/* Right Side: Status + Action Buttons */}
           <div className="flex items-center gap-3">
+            {/* System Status Indicator */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700">
+              <div className={`w-2 h-2 rounded-full ${systemStatus === 'operational' ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+              <span className="text-xs text-slate-300 font-medium">
+                {systemStatus === 'operational' ? 'Systems Online' : 'Maintenance'}
+              </span>
+            </div>
+
             <Button
               asChild
               variant="ghost"
@@ -118,14 +129,6 @@ export default function Header() {
                 </div>
 
                 <div className="p-6 space-y-2">
-                  {/* System Status */}
-                  <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-700 mb-4">
-                    <div className={`w-2 h-2 rounded-full ${systemStatus === 'operational' ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
-                    <span className="text-xs text-slate-300 font-medium">
-                      {systemStatus === 'operational' ? 'Systems Online' : 'Maintenance'}
-                    </span>
-                  </div>
-
                   <button
                     onClick={() => {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -197,20 +200,6 @@ export default function Header() {
                   >
                     Tech Stack
                   </button>
-
-                  {/* Mobile-only Panel Login */}
-                  <div className="pt-4 border-t border-slate-800 sm:hidden">
-                    <Button
-                      asChild
-                      variant="ghost"
-                      className="w-full text-slate-300 hover:text-white hover:bg-slate-800/50 justify-start"
-                    >
-                      <a href="https://panel.skyserver1508.org" target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Panel Login
-                      </a>
-                    </Button>
-                  </div>
                 </div>
               </motion.div>
             </>
