@@ -4,8 +4,10 @@ import { createPageUrl } from '@/utils';
 import { Server, LayoutDashboard, Inbox, Settings, LogOut } from 'lucide-react';
 
 const navItems = [
+  { name: 'Overview', icon: LayoutDashboard, page: 'AdminOverview' },
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Admin' },
   { name: 'Requests', icon: Inbox, page: 'AdminRequests' },
+  { name: 'Users', icon: Users, page: 'AdminUsers' },
   { name: 'Settings', icon: Settings, page: 'AdminSettings' },
 ];
 
