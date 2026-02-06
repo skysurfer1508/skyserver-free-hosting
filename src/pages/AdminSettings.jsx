@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Server, Bell, Shield, Database, Zap } from 'lucide-react';
+import { Server, Bell, Shield, Database, Zap, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const DEFAULT_SLOTS = { minecraft: 5, terraria: 5, satisfactory: 3 };
@@ -64,6 +64,21 @@ export default function AdminSettings() {
     localStorage.setItem('adminPassword', newPassword);
     toast.success('Admin password updated successfully');
     setNewPassword('');
+  };
+
+  const handleFactoryReset = () => {
+    if (window.confirm('⚠️ DANGER: This will permanently delete ALL data including users, requests, and settings. This action CANNOT be undone. Are you absolutely sure?')) {
+      if (window.confirm('Last confirmation: Type YES in the next prompt to proceed.')) {
+        const confirmation = window.prompt('Type YES to confirm factory reset:');
+        if (confirmation === 'YES') {
+          localStorage.clear();
+          toast.success('Database cleared. Reloading...');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          toast.error('Factory reset cancelled');
+        }
+      }
+    }
   };
 
   return (
@@ -251,6 +266,39 @@ export default function AdminSettings() {
                 className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 disabled:opacity-50"
               >
                 Update Password
+              </Button>
+            </div>
+          </Card>
+
+          {/* Danger Zone */}
+          <Card className="p-6 bg-red-950/20 border-red-900/50">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-red-400">Danger Zone</h2>
+                <p className="text-slate-400 text-sm">Irreversible actions</p>
+              </div>
+            </div>
+            
+            <div className="p-4 rounded-xl bg-red-950/30 border border-red-900/50">
+              <div className="flex items-start gap-3 mb-4">
+                <Trash2 className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-white font-medium">Factory Reset (Clear Database)</p>
+                  <p className="text-slate-400 text-sm mt-1">
+                    This will permanently delete all users, requests, settings, and admin data. This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={handleFactoryReset}
+                variant="destructive"
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Factory Reset (Clear Database)
               </Button>
             </div>
           </Card>

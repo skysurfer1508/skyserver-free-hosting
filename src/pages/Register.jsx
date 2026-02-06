@@ -16,6 +16,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ level: 'weak', label: 'Weak', color: 'bg-red-500' });
 
   useEffect(() => {
     // Redirect if already logged in
@@ -23,6 +24,27 @@ export default function Register() {
       window.location.href = createPageUrl('UserDashboard');
     }
   }, []);
+
+  useEffect(() => {
+    // Calculate password strength in real-time
+    if (!password) {
+      setPasswordStrength({ level: 'weak', label: 'Weak', color: 'bg-red-500', width: '0%' });
+      return;
+    }
+
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const length = password.length;
+
+    if (length >= 8 && (hasSymbol || hasUpperCase) && hasNumber) {
+      setPasswordStrength({ level: 'strong', label: 'Strong', color: 'bg-green-500', width: '100%' });
+    } else if (length >= 6 && (hasNumber || hasUpperCase)) {
+      setPasswordStrength({ level: 'medium', label: 'Medium', color: 'bg-yellow-500', width: '66%' });
+    } else {
+      setPasswordStrength({ level: 'weak', label: 'Weak', color: 'bg-red-500', width: '33%' });
+    }
+  }, [password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -119,9 +141,28 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   className="bg-slate-800/50 border-slate-700 focus:border-sky-500 text-white"
                   required
                 />
+                {password && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-medium ${
+                        passwordStrength.level === 'strong' ? 'text-green-400' :
+                        passwordStrength.level === 'medium' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                        style={{ width: passwordStrength.width }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -155,7 +196,7 @@ export default function Register() {
 
             <p className="mt-6 text-center text-slate-400">
               Already have an account?{' '}
-              <Link to={createPageUrl('Login')} className="text-sky-400 hover:text-sky-300 font-medium">
+              <Link to={createPageUrl('UserLogin')} className="text-sky-400 hover:text-sky-300 font-medium">
                 Sign in here
               </Link>
             </p>
