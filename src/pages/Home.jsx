@@ -75,9 +75,7 @@ export default function Home() {
       <SyncWarningBanner />
       {showMaintenanceBanner && <MaintenanceBanner />}
       <Header />
-      <div className="pt-[144px]">
-        <HeroSection onCTAClick={scrollToForm} />
-      </div>
+      <HeroSection onCTAClick={scrollToForm} />
       <TrustSection />
       <TechStack />
       <GamesSection onGameSelect={handleGameSelect} hasRequested={hasRequested} />

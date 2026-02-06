@@ -8,7 +8,7 @@ export default function SyncWarningBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] bg-red-600 border-b-2 border-red-700 shadow-lg">
+    <div className="bg-red-600 border-b-2 border-red-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
