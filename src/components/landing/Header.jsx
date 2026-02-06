@@ -4,7 +4,7 @@ import { Server, ExternalLink, Menu, X, ChevronDown, LogIn, User, LogOut } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { AuthService } from '@/components/auth/AuthService';
+import { base44 } from '@/api/base44Client';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,19 +14,21 @@ export default function Header() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = () => {
-      const authenticated = AuthService.isAuthenticated();
+    // Check authentication status using Base44
+    const checkAuth = async () => {
+      const authenticated = await base44.auth.isAuthenticated();
       setIsAuthenticated(authenticated);
       if (authenticated) {
-        setCurrentUser(AuthService.getCurrentUser());
+        try {
+          const user = await base44.auth.me();
+          setCurrentUser(user);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+        }
       }
     };
 
     checkAuth();
-    // Listen for auth changes
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
   }, []);
 
   const games = [
@@ -115,12 +117,7 @@ export default function Header() {
                   </Link>
                 </Button>
                 <Button
-                  onClick={() => {
-                    AuthService.logout();
-                    setIsAuthenticated(false);
-                    setCurrentUser(null);
-                    window.location.href = createPageUrl('Home');
-                  }}
+                  onClick={() => base44.auth.logout(createPageUrl('Home'))}
                   variant="ghost"
                   className="text-slate-300 hover:text-white hover:bg-slate-800/50"
                 >
@@ -129,13 +126,11 @@ export default function Header() {
               </>
             ) : (
               <Button
-                asChild
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
                 className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white font-semibold"
               >
-                <Link to={createPageUrl('UserLogin')}>
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Login
-                </Link>
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
               </Button>
             )}
           </div>
