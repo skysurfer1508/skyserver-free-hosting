@@ -22,7 +22,7 @@ export default function GamesSection({ onGameSelect, hasRequested }) {
     return () => window.removeEventListener('slotsUpdated', handleSlotsUpdate);
   }, []);
   return (
-    <section id="games" className="relative py-32 bg-slate-900">
+    <section id="games-section" className="relative py-32 bg-slate-900">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.02]"
         style={{

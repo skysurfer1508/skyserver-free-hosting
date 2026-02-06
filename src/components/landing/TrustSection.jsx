@@ -27,7 +27,7 @@ const features = [
 
 export default function TrustSection() {
   return (
-    <section className="relative py-32 bg-slate-950">
+    <section id="trust-section" className="relative py-32 bg-slate-950">
       {/* Subtle top gradient */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
       
