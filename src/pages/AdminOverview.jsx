@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Card } from "@/components/ui/card";
-import { Users, Server, TrendingUp, Gamepad2 } from 'lucide-react';
+import { Users, Server, TrendingUp, Gamepad2, RefreshCw } from 'lucide-react';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
@@ -14,6 +14,39 @@ export default function AdminOverview() {
     totalRequests: 0,
     pendingRequests: 0
   });
+  const [serviceStatus, setServiceStatus] = useState({
+    panel: { status: 'loading', label: 'Checking...' },
+    node: { status: 'loading', label: 'Checking...' }
+  });
+
+  const checkServiceStatus = async () => {
+    setServiceStatus({
+      panel: { status: 'loading', label: 'Checking...' },
+      node: { status: 'loading', label: 'Checking...' }
+    });
+
+    const endpoints = [
+      { key: 'panel', url: 'https://panel.skyserver1508.org' },
+      { key: 'node', url: 'https://node.skyserver1508.org' }
+    ];
+
+    const results = await Promise.all(
+      endpoints.map(async ({ key, url }) => {
+        try {
+          await fetch(url, { mode: 'no-cors', signal: AbortSignal.timeout(5000) });
+          return { key, status: 'online', label: 'Operational' };
+        } catch (error) {
+          return { key, status: 'offline', label: 'Unreachable' };
+        }
+      })
+    );
+
+    const newStatus = {};
+    results.forEach(({ key, status, label }) => {
+      newStatus[key] = { status, label };
+    });
+    setServiceStatus(newStatus);
+  };
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
@@ -45,6 +78,9 @@ export default function AdminOverview() {
       totalRequests: requests.length,
       pendingRequests
     });
+
+    // Check service status on load
+    checkServiceStatus();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -133,21 +169,58 @@ export default function AdminOverview() {
           </Card>
 
           <Card className="p-6 bg-slate-900/50 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                <Server className="w-5 h-5 text-cyan-400" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                  <Server className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Server Status</h3>
+                  <p className="text-slate-400 text-sm">Real-time monitoring</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Server Status</h3>
-                <p className="text-slate-400 text-sm">Platform health</p>
-              </div>
+              <button
+                onClick={checkServiceStatus}
+                className="p-2 rounded-lg text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 transition-colors"
+                title="Refresh status"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
             </div>
-            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <p className="text-emerald-400 font-semibold">All Systems Operational</p>
+            <div className="space-y-3">
+              {/* Control Panel Status */}
+              <div className="p-3 rounded-xl bg-slate-800/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    serviceStatus.panel.status === 'loading' ? 'bg-yellow-500 animate-pulse' :
+                    serviceStatus.panel.status === 'online' ? 'bg-emerald-500' : 'bg-red-500'
+                  }`} />
+                  <span className="text-white font-medium text-sm">Control Panel</span>
+                </div>
+                <span className={`text-xs font-medium ${
+                  serviceStatus.panel.status === 'loading' ? 'text-yellow-400' :
+                  serviceStatus.panel.status === 'online' ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {serviceStatus.panel.label}
+                </span>
               </div>
-              <p className="text-slate-400 text-xs">Platform is running smoothly</p>
+
+              {/* Node Status */}
+              <div className="p-3 rounded-xl bg-slate-800/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    serviceStatus.node.status === 'loading' ? 'bg-yellow-500 animate-pulse' :
+                    serviceStatus.node.status === 'online' ? 'bg-emerald-500' : 'bg-red-500'
+                  }`} />
+                  <span className="text-white font-medium text-sm">Node 1 (EU)</span>
+                </div>
+                <span className={`text-xs font-medium ${
+                  serviceStatus.node.status === 'loading' ? 'text-yellow-400' :
+                  serviceStatus.node.status === 'online' ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {serviceStatus.node.label}
+                </span>
+              </div>
             </div>
           </Card>
         </div>
