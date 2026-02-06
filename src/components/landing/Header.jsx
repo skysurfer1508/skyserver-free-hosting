@@ -183,6 +183,16 @@ export default function Header() {
 
                   <button
                     onClick={() => {
+                      document.getElementById('roadmap')?.scrollIntoView({ behavior: 'smooth' });
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors font-medium"
+                  >
+                    Roadmap
+                  </button>
+
+                  <button
+                    onClick={() => {
                       document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
                       setMobileMenuOpen(false);
                     }}
