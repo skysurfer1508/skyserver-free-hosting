@@ -35,7 +35,7 @@ const techStack = [
 
 export default function TechStack() {
   return (
-    <section className="relative py-24 bg-slate-950">
+    <section id="tech-stack" className="relative py-24 bg-slate-950">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-900/10 via-transparent to-transparent" />
       
       <div className="relative max-w-7xl mx-auto px-6">
