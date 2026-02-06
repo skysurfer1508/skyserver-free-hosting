@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Gamepad2 } from 'lucide-react';
 import GameCard from './GameCard';
 
 const games = ['minecraft', 'satisfactory', 'terraria'];
 
-const initialAvailability = {
-  minecraft: 5,
-  satisfactory: 3,
-  terraria: 5
+const getAvailability = () => {
+  const stored = localStorage.getItem('availableSlots');
+  return stored ? JSON.parse(stored) : { minecraft: 5, terraria: 5, satisfactory: 3 };
 };
 
 export default function GamesSection({ onGameSelect }) {
-  const [availability, setAvailability] = useState(initialAvailability);
+  const [availability, setAvailability] = useState(getAvailability);
+
+  useEffect(() => {
+    const handleSlotsUpdate = () => {
+      setAvailability(getAvailability());
+    };
+
+    window.addEventListener('slotsUpdated', handleSlotsUpdate);
+    return () => window.removeEventListener('slotsUpdated', handleSlotsUpdate);
+  }, []);
   return (
     <section id="games" className="relative py-32 bg-slate-900">
       {/* Background Pattern */}
@@ -53,14 +61,7 @@ export default function GamesSection({ onGameSelect }) {
               game={game}
               index={index}
               availableSlots={availability[game]}
-              onSelect={(selectedGame) => {
-                // Decrement counter temporarily
-                setAvailability(prev => ({
-                  ...prev,
-                  [selectedGame]: Math.max(0, prev[selectedGame] - 1)
-                }));
-                onGameSelect(selectedGame);
-              }}
+              onSelect={onGameSelect}
             />
           ))}
         </div>

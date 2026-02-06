@@ -45,6 +45,24 @@ export default function AdminRequests() {
   };
 
   const handleApprove = (id) => {
+    const request = requests.find(r => r.id === id);
+    if (!request) return;
+
+    // Check available slots
+    const storedSlots = localStorage.getItem('availableSlots');
+    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
+    
+    if (slots[request.game] <= 0) {
+      toast.error(`No slots available for ${request.game}!`);
+      return;
+    }
+
+    // Decrement slot count
+    slots[request.game] = Math.max(0, slots[request.game] - 1);
+    localStorage.setItem('availableSlots', JSON.stringify(slots));
+    window.dispatchEvent(new Event('slotsUpdated'));
+
+    // Approve request
     updateMutation.mutate({ id, status: 'active' });
   };
 
