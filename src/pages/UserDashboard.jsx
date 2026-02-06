@@ -5,7 +5,6 @@ import { Server, LogOut, User, Mail, Clock, CheckCircle2, AlertCircle, ExternalL
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { AuthService } from '@/components/auth/AuthService';
 import { Badge } from "@/components/ui/badge";
 import { base44 } from '@/api/base44Client';
 
@@ -16,19 +15,21 @@ export default function UserDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Check authentication
-      const currentUser = AuthService.getCurrentUser();
-      if (!currentUser) {
-        window.location.href = createPageUrl('UserLogin');
-        return;
-      }
-
-      setUser(currentUser);
-      
       try {
-        // Fetch user's server request from backend
+        // Check authentication with Base44
+        const authenticated = await base44.auth.isAuthenticated();
+        if (!authenticated) {
+          base44.auth.redirectToLogin(window.location.href);
+          return;
+        }
+
+        // Get current user from Base44
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        
+        // Fetch user's server requests from backend (automatically filtered by created_by)
         const userRequests = await base44.entities.ServerRequest.filter(
-          { email: currentUser.email },
+          { created_by: currentUser.email },
           '-created_date',
           1
         );
@@ -37,7 +38,8 @@ export default function UserDashboard() {
           setRequest(userRequests[0]);
         }
       } catch (error) {
-        console.error('Failed to fetch request:', error);
+        console.error('Failed to fetch data:', error);
+        base44.auth.redirectToLogin(window.location.href);
       }
     };
 
@@ -45,8 +47,7 @@ export default function UserDashboard() {
   }, []);
 
   const handleLogout = () => {
-    AuthService.logout();
-    window.location.href = createPageUrl('Home');
+    base44.auth.logout(createPageUrl('Home'));
   };
 
   if (!user) {
@@ -117,7 +118,7 @@ export default function UserDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome, {user.name}!</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Welcome, {user.full_name}!</h1>
           <p className="text-slate-400">Manage your game servers and account</p>
         </motion.div>
 
@@ -138,7 +139,7 @@ export default function UserDashboard() {
               <div className="space-y-3">
                 <div>
                   <p className="text-slate-500 text-sm">Name</p>
-                  <p className="text-white font-medium">{user.name}</p>
+                  <p className="text-white font-medium">{user.full_name}</p>
                 </div>
                 <div>
                   <p className="text-slate-500 text-sm">Email</p>

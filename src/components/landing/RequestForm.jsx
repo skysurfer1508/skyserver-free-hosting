@@ -10,7 +10,6 @@ import { Server, Send, CheckCircle, Loader2, Sparkles, Clock, LogIn, UserPlus, A
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
-import { AuthService } from '@/components/auth/AuthService';
 
 const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess }, ref) => {
   const [formData, setFormData] = useState({
@@ -37,12 +36,21 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   ];
 
   useEffect(() => {
-    // Check authentication
-    const authenticated = AuthService.isAuthenticated();
-    setIsAuthenticated(authenticated);
-    if (authenticated) {
-      setCurrentUser(AuthService.getCurrentUser());
-    }
+    // Check authentication using Base44
+    const checkAuth = async () => {
+      const authenticated = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        try {
+          const user = await base44.auth.me();
+          setCurrentUser(user);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+        }
+      }
+    };
+
+    checkAuth();
 
     // Load availability from same source as GamesSection
     const loadAvailability = () => {
@@ -171,25 +179,12 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
               <div className="relative p-8 rounded-2xl bg-slate-900 border border-slate-800">
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
-                    asChild
                     size="lg"
+                    onClick={() => base44.auth.redirectToLogin(window.location.href)}
                     className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white font-semibold"
                   >
-                    <Link to={createPageUrl('Register')}>
-                      <UserPlus className="w-5 h-5 mr-2" />
-                      Create Account
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
-                  >
-                    <Link to={createPageUrl('UserLogin')}>
-                      <LogIn className="w-5 h-5 mr-2" />
-                      Sign In
-                    </Link>
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Sign In to Request Server
                   </Button>
                 </div>
               </div>
