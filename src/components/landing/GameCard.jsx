@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Pickaxe, Factory, Worm } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { ChevronRight, Pickaxe, Factory, Worm, Flame } from 'lucide-react';
 
 const gameIcons = {
   minecraft: Pickaxe,
@@ -51,10 +52,13 @@ const gameData = {
   }
 };
 
-export default function GameCard({ game, onSelect, index }) {
+export default function GameCard({ game, onSelect, index, availableSlots }) {
   const Icon = gameIcons[game];
   const colors = gameColors[game];
   const data = gameData[game];
+  
+  const isLimited = availableSlots <= 3;
+  const isHighDemand = game === 'satisfactory' && availableSlots <= 3;
 
   return (
     <motion.div
@@ -81,7 +85,7 @@ export default function GameCard({ game, onSelect, index }) {
         <p className="text-slate-400 mb-6 leading-relaxed">{data.description}</p>
 
         {/* Features */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-6">
           {data.features.map((feature, i) => (
             <span 
               key={i}
@@ -90,6 +94,52 @@ export default function GameCard({ game, onSelect, index }) {
               {feature}
             </span>
           ))}
+        </div>
+
+        {/* Availability Counter */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-slate-400 text-sm font-medium">Availability</span>
+            {isHighDemand && (
+              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs flex items-center gap-1 animate-pulse">
+                <Flame className="w-3 h-3" />
+                Popular
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: `${(availableSlots / 5) * 100}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: index * 0.1 + 0.3 }}
+                className={`h-full rounded-full ${
+                  isLimited 
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500' 
+                    : 'bg-gradient-to-r from-emerald-500 to-green-500'
+                }`}
+              />
+            </div>
+            
+            <Badge 
+              variant="outline" 
+              className={`${
+                isLimited
+                  ? 'bg-orange-500/10 text-orange-400 border-orange-500/30 animate-pulse'
+                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              } font-bold text-sm px-3 py-1`}
+            >
+              {availableSlots} {availableSlots === 1 ? 'slot' : 'slots'}
+            </Badge>
+          </div>
+          
+          <p className={`text-xs mt-2 font-medium ${
+            isLimited ? 'text-orange-400' : 'text-emerald-400'
+          }`}>
+            {isLimited ? '⚠️ Limited Stock - Act Fast!' : '✓ Available Now'}
+          </p>
         </div>
 
         {/* CTA */}
