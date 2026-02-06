@@ -1,8 +1,12 @@
-import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function SyncWarningBanner() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) return null;
+
   return (
     <div className="fixed top-0 left-0 right-0 z-[60] bg-red-600 border-b-2 border-red-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -18,18 +22,27 @@ export default function SyncWarningBanner() {
               </p>
             </div>
           </div>
-          <a
-            href="https://discord.gg/pNMVZJrTcv"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              size="lg"
-              className="bg-white hover:bg-red-50 text-red-600 font-bold shadow-lg"
+          <div className="flex items-center gap-3">
+            <a
+              href="https://discord.gg/pNMVZJrTcv"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              Open Discord Ticket
-            </Button>
-          </a>
+              <Button
+                size="lg"
+                className="bg-white hover:bg-red-50 text-red-600 font-bold shadow-lg"
+              >
+                Open Discord Ticket
+              </Button>
+            </a>
+            <button
+              onClick={() => setIsVisible(false)}
+              className="text-white hover:text-red-100 transition-colors p-2"
+              aria-label="Close banner"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
