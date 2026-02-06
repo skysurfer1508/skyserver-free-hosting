@@ -28,7 +28,13 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   const [systemStatus, setSystemStatus] = useState('operational');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [games, setGames] = useState([]);
+  const [availability, setAvailability] = useState({ minecraft: 5, terraria: 5, satisfactory: 3 });
+
+  const gamesList = [
+    { name: 'minecraft', displayName: 'Minecraft (Java & Bedrock)' },
+    { name: 'satisfactory', displayName: 'Satisfactory' },
+    { name: 'terraria', displayName: 'Terraria' }
+  ];
 
   useEffect(() => {
     // Check authentication
@@ -38,33 +44,22 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       setCurrentUser(AuthService.getCurrentUser());
     }
 
-    // Initialize and load games array
-    const loadGames = () => {
-      const storedGames = localStorage.getItem('games');
-      if (!storedGames) {
-        const initialGames = [
-          { name: 'minecraft', displayName: 'Minecraft (Java & Bedrock)', availableSlots: 10 },
-          { name: 'satisfactory', displayName: 'Satisfactory', availableSlots: 5 },
-          { name: 'terraria', displayName: 'Terraria', availableSlots: 5 }
-        ];
-        localStorage.setItem('games', JSON.stringify(initialGames));
-        setGames(initialGames);
-      } else {
-        setGames(JSON.parse(storedGames));
-      }
+    // Load availability from same source as GamesSection
+    const loadAvailability = () => {
+      const stored = localStorage.getItem('availableSlots');
+      const data = stored ? JSON.parse(stored) : { minecraft: 5, terraria: 5, satisfactory: 3 };
+      setAvailability(data);
     };
 
-    loadGames();
+    loadAvailability();
 
-    // Listen for storage changes from Admin Panel
-    const handleStorageChange = (e) => {
-      if (e.key === 'games') {
-        loadGames();
-      }
+    // Listen for slot updates from Admin Panel
+    const handleSlotsUpdate = () => {
+      loadAvailability();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('slotsUpdated', handleSlotsUpdate);
+    return () => window.removeEventListener('slotsUpdated', handleSlotsUpdate);
   }, []);
 
   useEffect(() => {
@@ -130,12 +125,13 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     AuthService.addRequestToUser(newRequest);
     
     // Decrement available slots for the selected game
-    const currentGames = JSON.parse(localStorage.getItem('games') || '[]');
-    const gameIndex = currentGames.findIndex(g => g.name === formData.game);
-    if (gameIndex !== -1 && currentGames[gameIndex].availableSlots > 0) {
-      currentGames[gameIndex].availableSlots -= 1;
-      localStorage.setItem('games', JSON.stringify(currentGames));
-      setGames(currentGames);
+    const currentAvailability = JSON.parse(localStorage.getItem('availableSlots') || '{}');
+    if (currentAvailability[formData.game] !== undefined && currentAvailability[formData.game] > 0) {
+      currentAvailability[formData.game] -= 1;
+      localStorage.setItem('availableSlots', JSON.stringify(currentAvailability));
+      setAvailability(currentAvailability);
+      // Trigger event for other components
+      window.dispatchEvent(new Event('slotsUpdated'));
     }
     
     localStorage.setItem('hasRequestedServer', 'true');
@@ -236,7 +232,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     );
   }
 
-  const totalSlotsAvailable = games.reduce((sum, game) => sum + game.availableSlots, 0);
+  const totalSlotsAvailable = Object.values(availability).reduce((sum, slots) => sum + slots, 0);
   const allSoldOut = totalSlotsAvailable === 0;
 
   return (
@@ -354,14 +350,14 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                       <SelectValue placeholder="Select a game" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      {games.map((game) => (
+                      {gamesList.map((game) => (
                         <SelectItem 
                           key={game.name}
                           value={game.name} 
-                          disabled={game.availableSlots === 0}
+                          disabled={availability[game.name] === 0}
                           className="text-white hover:bg-slate-700"
                         >
-                          {game.displayName} {game.availableSlots === 0 ? '(SOLD OUT)' : `(${game.availableSlots} slots left)`}
+                          {game.displayName} {availability[game.name] === 0 ? '(SOLD OUT)' : `(${availability[game.name]} slots left)`}
                         </SelectItem>
                       ))}
                     </SelectContent>
