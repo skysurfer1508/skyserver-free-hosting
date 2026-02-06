@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Server, UserPlus, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { AuthService } from '@/utils/auth';
+import { createPageUrl } from './utils';
+import { AuthService } from '../components/auth/AuthService';
 import { toast } from 'sonner';
 
 export default function Register() {

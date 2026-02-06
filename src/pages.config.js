@@ -54,6 +54,7 @@ import AdminSettings from './pages/AdminSettings';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
+import utils from './pages/utils';
 
 
 export const PAGES = {
@@ -64,6 +65,7 @@ export const PAGES = {
     "Home": Home,
     "Register": Register,
     "UserDashboard": UserDashboard,
+    "utils": utils,
 }
 
 export const pagesConfig = {

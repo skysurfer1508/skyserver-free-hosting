@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Server, ExternalLink, Menu, X, ChevronDown, LogIn, User, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { AuthService } from '@/utils/auth';
+import { createPageUrl } from '../../pages/utils';
+import { AuthService } from '../auth/AuthService';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
