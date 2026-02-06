@@ -110,7 +110,7 @@ export default function Header() {
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'tween', duration: 0.3 }}
-                className="fixed top-0 left-0 bottom-0 w-80 bg-slate-900 border-r border-slate-800 z-50 overflow-y-auto"
+                className="fixed top-0 left-0 h-screen w-80 bg-slate-900 border-r border-slate-800 z-50 overflow-y-auto"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-800">
