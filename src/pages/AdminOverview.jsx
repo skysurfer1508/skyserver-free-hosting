@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import { base44 } from '@/api/base44Client';
 import { Card } from "@/components/ui/card";
 import { Users, Server, TrendingUp, Gamepad2, RefreshCw } from 'lucide-react';
 
@@ -55,30 +56,37 @@ export default function AdminOverview() {
       return;
     }
 
-    // Calculate analytics
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const requests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
+    const fetchAnalytics = async () => {
+      try {
+        // Fetch from backend database
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const requests = await base44.entities.ServerRequest.list();
 
-    const activeServers = requests.filter(r => r.status === 'active').length;
-    const pendingRequests = requests.filter(r => r.status === 'pending').length;
+        const activeServers = requests.filter(r => r.status === 'active').length;
+        const pendingRequests = requests.filter(r => r.status === 'pending').length;
 
-    // Calculate most popular game
-    const gameCounts = {};
-    requests.forEach(r => {
-      gameCounts[r.game] = (gameCounts[r.game] || 0) + 1;
-    });
-    const mostPopularGame = Object.keys(gameCounts).length > 0
-      ? Object.entries(gameCounts).sort((a, b) => b[1] - a[1])[0][0]
-      : 'N/A';
+        // Calculate most popular game
+        const gameCounts = {};
+        requests.forEach(r => {
+          gameCounts[r.game] = (gameCounts[r.game] || 0) + 1;
+        });
+        const mostPopularGame = Object.keys(gameCounts).length > 0
+          ? Object.entries(gameCounts).sort((a, b) => b[1] - a[1])[0][0]
+          : 'N/A';
 
-    setAnalytics({
-      totalUsers: users.length,
-      activeServers,
-      mostPopularGame: mostPopularGame.charAt(0).toUpperCase() + mostPopularGame.slice(1),
-      totalRequests: requests.length,
-      pendingRequests
-    });
+        setAnalytics({
+          totalUsers: users.length,
+          activeServers,
+          mostPopularGame: mostPopularGame.charAt(0).toUpperCase() + mostPopularGame.slice(1),
+          totalRequests: requests.length,
+          pendingRequests
+        });
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error);
+      }
+    };
 
+    fetchAnalytics();
     // Check service status on load
     checkServiceStatus();
   }, [navigate]);

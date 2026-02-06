@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { AuthService } from '@/components/auth/AuthService';
 import { Badge } from "@/components/ui/badge";
+import { base44 } from '@/api/base44Client';
 
 export default function UserDashboard() {
   const [user, setUser] = useState(null);
@@ -14,30 +15,33 @@ export default function UserDashboard() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Check authentication
-    const currentUser = AuthService.getCurrentUser();
-    if (!currentUser) {
-      window.location.href = createPageUrl('UserLogin');
-      return;
-    }
+    const fetchData = async () => {
+      // Check authentication
+      const currentUser = AuthService.getCurrentUser();
+      if (!currentUser) {
+        window.location.href = createPageUrl('UserLogin');
+        return;
+      }
 
-    // CRITICAL: Re-fetch fresh user data from localStorage to get latest status
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const freshUser = users.find(u => u.email === currentUser.email);
-    
-    if (!freshUser) {
-      window.location.href = createPageUrl('UserLogin');
-      return;
-    }
+      setUser(currentUser);
+      
+      try {
+        // Fetch user's server request from backend
+        const userRequests = await base44.entities.ServerRequest.filter(
+          { email: currentUser.email },
+          '-created_date',
+          1
+        );
+        
+        if (userRequests && userRequests.length > 0) {
+          setRequest(userRequests[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch request:', error);
+      }
+    };
 
-    setUser(freshUser);
-    
-    // Get the latest request from the fresh user data
-    const userRequest = freshUser.requests && freshUser.requests.length > 0 
-      ? freshUser.requests[freshUser.requests.length - 1] 
-      : null;
-    
-    setRequest(userRequest);
+    fetchData();
   }, []);
 
   const handleLogout = () => {
