@@ -49,10 +49,10 @@ export default function Home() {
       <Header />
       <HeroSection onCTAClick={scrollToForm} />
       <TrustSection />
+      <TechStack />
       <GamesSection onGameSelect={handleGameSelect} hasRequested={hasRequested} />
       <RequestForm ref={formRef} selectedGame={selectedGame} hasRequested={hasRequested} onSubmitSuccess={() => setHasRequested(true)} />
       <FAQSection />
-      <TechStack />
       <Footer />
     </div>
   );
