@@ -7,6 +7,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import StatsCard from '@/components/admin/StatsCard';
 import RequestsTable from '@/components/admin/RequestsTable';
 import RequestDetailsModal from '@/components/admin/RequestDetailsModal';
+import ProvisioningModal from '@/components/admin/ProvisioningModal';
 import { Inbox, Clock, Zap, XCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -79,13 +80,35 @@ export default function Admin() {
       return;
     }
 
+    // Open provisioning modal instead of approving immediately
+    setProvisioningRequest(request);
+  };
+
+  const handleProvisioningConfirm = async (credentials) => {
+    const request = provisioningRequest;
+    
+    // Update request with credentials and status
+    const updateData = {
+      status: 'active',
+      credentials: credentials
+    };
+    
+    await updateMutation.mutateAsync({ id: request.id, status: updateData.status });
+    
+    // Store credentials separately in localStorage for the request
+    const storedRequests = JSON.parse(localStorage.getItem('serverRequestsWithCreds') || '{}');
+    storedRequests[request.id] = credentials;
+    localStorage.setItem('serverRequestsWithCreds', JSON.stringify(storedRequests));
+
     // Decrement slot count
+    const storedSlots = localStorage.getItem('availableSlots');
+    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
     slots[request.game] = Math.max(0, slots[request.game] - 1);
     localStorage.setItem('availableSlots', JSON.stringify(slots));
     window.dispatchEvent(new Event('slotsUpdated'));
 
-    // Approve request
-    updateMutation.mutate({ id, status: 'active' });
+    setProvisioningRequest(null);
+    toast.success('Server activated successfully!');
   };
 
   const handleReject = (id) => {
@@ -206,6 +229,14 @@ export default function Admin() {
           onClose={() => setSelectedRequest(null)}
           onApprove={handleApprove}
           onReject={handleReject}
+        />
+
+        {/* Provisioning Modal */}
+        <ProvisioningModal
+          isOpen={!!provisioningRequest}
+          onClose={() => setProvisioningRequest(null)}
+          request={provisioningRequest}
+          onConfirm={handleProvisioningConfirm}
         />
       </main>
     </div>

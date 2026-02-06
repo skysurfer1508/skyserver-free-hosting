@@ -22,7 +22,17 @@ export default function UserDashboard() {
     }
 
     setUser(currentUser);
-    setRequest(AuthService.getUserLatestRequest());
+    const userRequest = AuthService.getUserLatestRequest();
+    
+    // If request is active, fetch credentials from localStorage
+    if (userRequest && userRequest.status === 'active') {
+      const storedCreds = JSON.parse(localStorage.getItem('serverRequestsWithCreds') || '{}');
+      if (storedCreds[userRequest.id]) {
+        userRequest.credentials = storedCreds[userRequest.id];
+      }
+    }
+    
+    setRequest(userRequest);
   }, []);
 
   const handleLogout = () => {
