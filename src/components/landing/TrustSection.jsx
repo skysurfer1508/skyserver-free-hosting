@@ -20,8 +20,8 @@ const features = [
   },
   {
     icon: Rocket,
-    title: "High Performance",
-    description: "Powerful hardware ensures smooth gameplay with minimal latency."
+    title: "Swiss Hosted Infrastructure 🇨🇭",
+    description: "Located in the heart of Europe for ultra-low latency and maximum stability. Optimized for EU players."
   }
 ];
 

@@ -41,15 +41,20 @@ export default function HeroSection({ onCTAClick }) {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        {/* Badge */}
+        {/* Badges */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-8"
+          className="flex flex-wrap items-center justify-center gap-3 mb-8"
         >
-          <Zap className="w-4 h-4" />
-          100% Free • No Credit Card Required
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium">
+            <Zap className="w-4 h-4" />
+            100% Free • No Credit Card Required
+          </div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium">
+            🇪🇺 Low Latency EU Network
+          </div>
         </motion.div>
 
         {/* Main Heading */}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Header from '@/components/landing/Header';
 import HeroSection from '@/components/landing/HeroSection';
 import TrustSection from '@/components/landing/TrustSection';
@@ -6,6 +6,7 @@ import GamesSection from '@/components/landing/GamesSection';
 import RequestForm from '@/components/landing/RequestForm';
 import FAQSection from '@/components/landing/FAQSection';
 import Footer from '@/components/landing/Footer';
+import MaintenanceBanner from '@/components/landing/MaintenanceBanner';
 
 export default function Home() {
   const formRef = useRef(null);
@@ -30,6 +31,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      {showMaintenanceBanner && <MaintenanceBanner />}
       <Header />
       <HeroSection onCTAClick={scrollToForm} />
       <TrustSection />

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Server, Bell, Shield, Database } from 'lucide-react';
+import { Server, Bell, Shield, Database, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 const DEFAULT_SLOTS = { minecraft: 5, terraria: 5, satisfactory: 3 };
@@ -15,6 +15,7 @@ const DEFAULT_SLOTS = { minecraft: 5, terraria: 5, satisfactory: 3 };
 export default function AdminSettings() {
   const navigate = useNavigate();
   const [slots, setSlots] = useState(DEFAULT_SLOTS);
+  const [systemStatus, setSystemStatus] = useState('operational');
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
@@ -29,6 +30,10 @@ export default function AdminSettings() {
     } else {
       localStorage.setItem('availableSlots', JSON.stringify(DEFAULT_SLOTS));
     }
+
+    // Load system status
+    const storedStatus = localStorage.getItem('systemStatus') || 'operational';
+    setSystemStatus(storedStatus);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -40,6 +45,14 @@ export default function AdminSettings() {
     localStorage.setItem('availableSlots', JSON.stringify(slots));
     toast.success('Server capacity updated successfully');
     window.dispatchEvent(new Event('slotsUpdated'));
+  };
+
+  const handleStatusChange = (checked) => {
+    const newStatus = checked ? 'operational' : 'maintenance';
+    setSystemStatus(newStatus);
+    localStorage.setItem('systemStatus', newStatus);
+    toast.success(`System status changed to ${newStatus === 'operational' ? 'Operational' : 'Maintenance Mode'}`);
+    window.dispatchEvent(new Event('systemStatusChanged'));
   };
 
   return (
@@ -54,6 +67,36 @@ export default function AdminSettings() {
         </div>
 
         <div className="grid gap-6 max-w-2xl">
+          {/* System Status */}
+          <Card className="p-6 bg-slate-900/50 border-slate-800">
+            <div className="flex items-center gap-3 mb-6">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${systemStatus === 'operational' ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
+                <Zap className={`w-5 h-5 ${systemStatus === 'operational' ? 'text-emerald-400' : 'text-red-400'}`} />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">System Status</h2>
+                <p className="text-slate-400 text-sm">Control global maintenance mode</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50">
+              <div>
+                <p className="text-white font-medium">
+                  {systemStatus === 'operational' ? '🟢 Systems Operational' : '🔴 Maintenance Mode'}
+                </p>
+                <p className="text-slate-400 text-sm">
+                  {systemStatus === 'operational' 
+                    ? 'All services are running normally' 
+                    : 'Users will see a maintenance banner'}
+                </p>
+              </div>
+              <Switch 
+                checked={systemStatus === 'operational'}
+                onCheckedChange={handleStatusChange}
+              />
+            </div>
+          </Card>
+
           {/* General Settings */}
           <Card className="p-6 bg-slate-900/50 border-slate-800">
             <div className="flex items-center gap-3 mb-6">

@@ -20,12 +20,28 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [systemStatus, setSystemStatus] = useState('operational');
 
   useEffect(() => {
     if (selectedGame) {
       setFormData(prev => ({ ...prev, game: selectedGame }));
     }
   }, [selectedGame]);
+
+  useEffect(() => {
+    // Load system status
+    const storedStatus = localStorage.getItem('systemStatus') || 'operational';
+    setSystemStatus(storedStatus);
+
+    // Listen for status changes
+    const handleStatusChange = () => {
+      const newStatus = localStorage.getItem('systemStatus') || 'operational';
+      setSystemStatus(newStatus);
+    };
+
+    window.addEventListener('systemStatusChanged', handleStatusChange);
+    return () => window.removeEventListener('systemStatusChanged', handleStatusChange);
+  }, []);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -211,13 +227,18 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || systemStatus === 'maintenance'}
                 className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white rounded-xl shadow-lg shadow-sky-500/25 transition-all duration-300 hover:shadow-sky-500/40 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Sending Request...
+                  </span>
+                ) : systemStatus === 'maintenance' ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Requests Temporarily Disabled
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
