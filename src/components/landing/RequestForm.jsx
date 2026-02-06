@@ -53,7 +53,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
 
   if (isSubmitted || hasRequested) {
     return (
-      <section ref={ref} id="request" className="relative py-32 bg-slate-950">
+      <section ref={ref} id="request-form" className="relative py-32 bg-slate-950">
         <div className="max-w-2xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -77,7 +77,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   }
 
   return (
-    <section ref={ref} id="request" className="relative py-32 bg-slate-950">
+    <section ref={ref} id="request-form" className="relative py-32 bg-slate-950">
       {/* Gradient overlays */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-sky-900/20 via-transparent to-transparent" />
       
