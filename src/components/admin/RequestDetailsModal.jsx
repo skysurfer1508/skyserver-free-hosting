@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pickaxe, Factory, Worm, Mail, User, Calendar, MessageSquare, Server as ServerIcon, Hash, Check, X, Clock, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Pickaxe, Factory, Worm, Mail, User, Calendar, MessageSquare, Server as ServerIcon, Hash, Check, X, Clock, CheckCircle, XCircle, Zap, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const gameIcons = {
@@ -138,6 +138,21 @@ export default function RequestDetailsModal({ request, isOpen, onClose, onApprov
               >
                 <X className="w-4 h-4 mr-2" />
                 Reject Request
+              </Button>
+            </div>
+          )}
+          {request.status === 'active' && onDelete && (
+            <div className="pt-4 border-t border-slate-800">
+              <Button
+                onClick={() => {
+                  onDelete(request.id);
+                  onClose();
+                }}
+                variant="ghost"
+                className="w-full text-red-400 hover:bg-red-500/10 hover:text-red-400"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Terminate Server
               </Button>
             </div>
           )}
