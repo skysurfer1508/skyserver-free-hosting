@@ -31,7 +31,8 @@ export default function Home() {
           setHasRequested(requests && requests.length > 0);
         }
       } catch (error) {
-        console.error('Failed to check requests:', error);
+        // User not authenticated or no requests yet
+        setHasRequested(false);
       }
     };
 

@@ -16,15 +16,17 @@ export default function Header() {
   useEffect(() => {
     // Check authentication status using Base44
     const checkAuth = async () => {
-      const authenticated = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      if (authenticated) {
-        try {
+      try {
+        const authenticated = await base44.auth.isAuthenticated();
+        setIsAuthenticated(authenticated);
+        if (authenticated) {
           const user = await base44.auth.me();
           setCurrentUser(user);
-        } catch (error) {
-          console.error('Failed to fetch user:', error);
         }
+      } catch (error) {
+        // Silently handle auth errors - user is just not logged in
+        setIsAuthenticated(false);
+        setCurrentUser(null);
       }
     };
 
