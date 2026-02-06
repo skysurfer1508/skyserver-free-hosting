@@ -12,10 +12,23 @@ export default function Home() {
   const formRef = useRef(null);
   const [selectedGame, setSelectedGame] = useState('');
   const [hasRequested, setHasRequested] = useState(false);
+  const [showMaintenanceBanner, setShowMaintenanceBanner] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const requested = localStorage.getItem('hasRequestedServer') === 'true';
     setHasRequested(requested);
+  }, []);
+
+  // Check maintenance status
+  useEffect(() => {
+    const updateMaintenanceStatus = () => {
+      const status = localStorage.getItem('systemStatus') || 'operational';
+      setShowMaintenanceBanner(status === 'maintenance');
+    };
+
+    updateMaintenanceStatus();
+    window.addEventListener('systemStatusChanged', updateMaintenanceStatus);
+    return () => window.removeEventListener('systemStatusChanged', updateMaintenanceStatus);
   }, []);
 
   const scrollToForm = () => {
