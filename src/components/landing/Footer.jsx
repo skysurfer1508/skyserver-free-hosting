@@ -49,6 +49,16 @@ export default function Footer() {
             Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> by a student, for gamers.
           </p>
         </div>
+
+        {/* Dev Reset Button */}
+        <div className="mt-4 text-center">
+          <button
+            onClick={handleResetStorage}
+            className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+          >
+            Reset Request Status
+          </button>
+        </div>
       </div>
     </footer>
   );
