@@ -153,17 +153,6 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                       Create Account
                     </Link>
                   </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/50"
-                  >
-                    <Link to={createPageUrl('Login')}>
-                      <LogIn className="w-5 h-5 mr-2" />
-                      Sign In
-                    </Link>
-                  </Button>
                 </div>
               </div>
             </div>
