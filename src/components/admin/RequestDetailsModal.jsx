@@ -18,7 +18,7 @@ const statusConfig = {
   rejected: { label: 'Rejected', color: 'bg-red-500/10 text-red-400 border-red-500/20', icon: XCircle },
 };
 
-export default function RequestDetailsModal({ request, isOpen, onClose, onApprove, onReject }) {
+export default function RequestDetailsModal({ request, isOpen, onClose, onApprove, onReject, onDelete }) {
   if (!request) return null;
 
   const game = gameIcons[request.game] || gameIcons.minecraft;

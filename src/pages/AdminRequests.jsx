@@ -28,7 +28,15 @@ export default function AdminRequests() {
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['serverRequests'],
-    queryFn: () => base44.entities.ServerRequest.list('-created_date'),
+    queryFn: async () => {
+      try {
+        return await base44.entities.ServerRequest.list('-created_date');
+      } catch (err) {
+        console.error('Failed to load requests:', err);
+        return [];
+      }
+    },
+    retry: false,
   });
 
   const updateMutation = useMutation({
@@ -36,6 +44,23 @@ export default function AdminRequests() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
       toast.success('Request updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update request');
+      console.error(error);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.ServerRequest.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
+      toast.success('Server terminated successfully');
+      setSelectedRequest(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete server');
+      console.error(error);
     },
   });
 
@@ -70,8 +95,29 @@ export default function AdminRequests() {
     updateMutation.mutate({ id, status: 'rejected' });
   };
 
-  // Filter requests
-  const filteredRequests = requests.filter(request => {
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to terminate this server? This action cannot be undone.')) {
+      return;
+    }
+
+    const request = requests.find(r => r.id === id);
+    if (!request) return;
+
+    // Increment slot count back
+    const storedSlots = localStorage.getItem('availableSlots');
+    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
+    
+    slots[request.game] = (slots[request.game] || 0) + 1;
+    localStorage.setItem('availableSlots', JSON.stringify(slots));
+    window.dispatchEvent(new Event('slotsUpdated'));
+
+    // Delete request
+    deleteMutation.mutate(id);
+  };
+
+  // Filter requests - safely handle empty arrays
+  const safeRequests = Array.isArray(requests) ? requests : [];
+  const filteredRequests = safeRequests.filter(request => {
     const matchesSearch = 
       request.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -130,7 +176,9 @@ export default function AdminRequests() {
               requests={filteredRequests} 
               onApprove={handleApprove} 
               onReject={handleReject}
+              onDelete={handleDelete}
               onRowClick={setSelectedRequest}
+              showDeleteButton={true}
             />
           )}
         </div>
@@ -142,11 +190,12 @@ export default function AdminRequests() {
           onClose={() => setSelectedRequest(null)}
           onApprove={handleApprove}
           onReject={handleReject}
+          onDelete={handleDelete}
         />
 
         {/* Results count */}
         <p className="text-slate-500 text-sm mt-4">
-          Showing {filteredRequests.length} of {requests.length} requests
+          Showing {filteredRequests.length} of {safeRequests.length} requests
         </p>
       </main>
     </div>

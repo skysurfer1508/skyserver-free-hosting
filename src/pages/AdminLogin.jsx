@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Server, Lock, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const ADMIN_PASSWORD = 'admin123';
-
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  
+  // Get password from localStorage or use default
+  const adminPassword = localStorage.getItem('adminPassword') || 'admin123';
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
@@ -23,7 +24,7 @@ export default function AdminLogin() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (password === adminPassword) {
       localStorage.setItem('skyserver_admin_auth', 'true');
       navigate(createPageUrl('Admin'));
     } else {
@@ -86,9 +87,11 @@ export default function AdminLogin() {
             </Button>
           </form>
 
-          <p className="text-center text-slate-500 text-xs mt-6">
-            Hint: The password is "admin123"
-          </p>
+          {adminPassword === 'admin123' && (
+            <p className="text-center text-slate-500 text-xs mt-6">
+              Hint: The default password is "admin123"
+            </p>
+          )}
         </div>
       </motion.div>
     </div>

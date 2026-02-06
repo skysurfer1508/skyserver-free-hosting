@@ -16,6 +16,7 @@ export default function AdminSettings() {
   const navigate = useNavigate();
   const [slots, setSlots] = useState(DEFAULT_SLOTS);
   const [systemStatus, setSystemStatus] = useState('operational');
+  const [newPassword, setNewPassword] = useState('');
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('skyserver_admin_auth') === 'true';
@@ -53,6 +54,16 @@ export default function AdminSettings() {
     localStorage.setItem('systemStatus', newStatus);
     toast.success(`System status changed to ${newStatus === 'operational' ? 'Operational' : 'Maintenance Mode'}`);
     window.dispatchEvent(new Event('systemStatusChanged'));
+  };
+
+  const handlePasswordChange = () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+    localStorage.setItem('adminPassword', newPassword);
+    toast.success('Admin password updated successfully');
+    setNewPassword('');
   };
 
   return (
@@ -224,15 +235,21 @@ export default function AdminSettings() {
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Change Password</Label>
+                <Label className="text-slate-300">New Admin Password</Label>
                 <Input 
                   type="password"
-                  placeholder="Enter new password"
+                  placeholder="Enter new password (min. 6 characters)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                   className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
-                  disabled
                 />
+                <p className="text-slate-500 text-xs">This password will be required to access the admin panel</p>
               </div>
-              <Button className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20" disabled>
+              <Button 
+                onClick={handlePasswordChange}
+                disabled={!newPassword || newPassword.length < 6}
+                className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 disabled:opacity-50"
+              >
                 Update Password
               </Button>
             </div>

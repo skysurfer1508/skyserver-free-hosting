@@ -25,30 +25,38 @@ export default function Admin() {
 
   const { data: requests = [], isLoading, error } = useQuery({
     queryKey: ['serverRequests'],
-    queryFn: () => base44.entities.ServerRequest.list('-created_date'),
-    retry: 1,
+    queryFn: async () => {
+      try {
+        return await base44.entities.ServerRequest.list('-created_date');
+      } catch (err) {
+        console.error('Failed to load requests:', err);
+        return [];
+      }
+    },
+    retry: false,
   });
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex">
-        <AdminSidebar currentPage="Admin" onLogout={handleLogout} />
-        <main className="flex-1 p-8 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-red-400 mb-4">Failed to load requests</p>
-            <p className="text-slate-500 text-sm">{error.message}</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }) => base44.entities.ServerRequest.update(id, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
       toast.success('Request updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update request');
+      console.error(error);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.ServerRequest.delete(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
+      toast.success('Server terminated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete server');
+      console.error(error);
     },
   });
 
@@ -83,14 +91,36 @@ export default function Admin() {
     updateMutation.mutate({ id, status: 'rejected' });
   };
 
-  // Calculate stats
-  const totalRequests = requests.length;
-  const pendingRequests = requests.filter(r => r.status === 'pending').length;
-  const activeServers = requests.filter(r => r.status === 'active').length;
-  const rejectedRequests = requests.filter(r => r.status === 'rejected').length;
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to terminate this server? This action cannot be undone.')) {
+      return;
+    }
+
+    const request = requests.find(r => r.id === id);
+    if (!request) return;
+
+    // Increment slot count back
+    const storedSlots = localStorage.getItem('availableSlots');
+    const slots = storedSlots ? JSON.parse(storedSlots) : { minecraft: 5, terraria: 5, satisfactory: 3 };
+    
+    slots[request.game] = (slots[request.game] || 0) + 1;
+    localStorage.setItem('availableSlots', JSON.stringify(slots));
+    window.dispatchEvent(new Event('slotsUpdated'));
+
+    // Delete request
+    deleteMutation.mutate(id);
+  };
+
+  // Calculate stats - safely handle empty arrays
+  const safeRequests = Array.isArray(requests) ? requests : [];
+  const totalRequests = safeRequests.length;
+  const pendingRequests = safeRequests.filter(r => r.status === 'pending').length;
+  const activeServers = safeRequests.filter(r => r.status === 'active').length;
+  const rejectedRequests = safeRequests.filter(r => r.status === 'rejected').length;
 
   // Get recent pending requests (max 5)
-  const recentPending = requests.filter(r => r.status === 'pending').slice(0, 5);
+  const recentPending = safeRequests.filter(r => r.status === 'pending').slice(0, 5);
+  const recentActive = safeRequests.filter(r => r.status === 'active').slice(0, 5);
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
@@ -112,7 +142,7 @@ export default function Admin() {
         </div>
 
         {/* Recent Pending Requests */}
-        <div className="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden">
+        <div className="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden mb-8">
           <div className="p-6 border-b border-slate-800 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-white">Recent Pending Requests</h2>
@@ -139,6 +169,31 @@ export default function Admin() {
           ) : (
             <div className="p-12 text-center text-slate-500">
               No pending requests. All caught up! 🎉
+            </div>
+          )}
+        </div>
+
+        {/* Active Servers */}
+        <div className="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden">
+          <div className="p-6 border-b border-slate-800">
+            <h2 className="text-xl font-semibold text-white">Active Servers</h2>
+            <p className="text-slate-400 text-sm mt-1">Currently running servers</p>
+          </div>
+          
+          {isLoading ? (
+            <div className="p-12 text-center text-slate-500">Loading servers...</div>
+          ) : recentActive.length > 0 ? (
+            <RequestsTable 
+              requests={recentActive} 
+              onApprove={handleApprove} 
+              onReject={handleReject}
+              onDelete={handleDelete}
+              onRowClick={setSelectedRequest}
+              showDeleteButton={true}
+            />
+          ) : (
+            <div className="p-12 text-center text-slate-500">
+              No active servers yet.
             </div>
           )}
         </div>
