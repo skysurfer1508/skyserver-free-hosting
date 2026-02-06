@@ -56,14 +56,18 @@ export const AuthService = {
   // Login user
   login(email, password) {
     const users = this.getUsers();
-    const user = users.find(u => u.email === email && u.password === password);
+    const userIndex = users.findIndex(u => u.email === email && u.password === password);
     
-    if (!user) {
+    if (userIndex === -1) {
       throw new Error('Invalid email or password');
     }
 
-    this.setCurrentUser(user);
-    return user;
+    // Update last login timestamp
+    users[userIndex].lastLogin = new Date().toISOString();
+    this.saveUsers(users);
+
+    this.setCurrentUser(users[userIndex]);
+    return users[userIndex];
   },
 
   // Check if user is authenticated
