@@ -100,7 +100,37 @@ export default function Admin() {
   const handleProvisioningConfirm = async (credentials) => {
     const request = provisioningRequest;
     
-    // Update request in localStorage with credentials
+    // CRITICAL: Update user's data in users array FIRST
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const userIndex = users.findIndex(u => u.email === request.email);
+    
+    if (userIndex === -1) {
+      toast.error('User not found!');
+      return;
+    }
+
+    // Find and update the user's request
+    if (!users[userIndex].requests) {
+      users[userIndex].requests = [];
+    }
+    
+    const reqIndex = users[userIndex].requests.findIndex(r => r.id === request.id);
+    if (reqIndex !== -1) {
+      users[userIndex].requests[reqIndex].status = 'active';
+      users[userIndex].requests[reqIndex].credentials = credentials;
+    } else {
+      // If request doesn't exist in user's array, add it
+      users[userIndex].requests.push({
+        ...request,
+        status: 'active',
+        credentials
+      });
+    }
+    
+    // Save updated users array
+    localStorage.setItem('users', JSON.stringify(users));
+
+    // Update global requests list
     const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
     const index = allRequests.findIndex(r => r.id === request.id);
     if (index !== -1) {
@@ -113,18 +143,6 @@ export default function Admin() {
     const storedRequests = JSON.parse(localStorage.getItem('serverRequestsWithCreds') || '{}');
     storedRequests[request.id] = credentials;
     localStorage.setItem('serverRequestsWithCreds', JSON.stringify(storedRequests));
-
-    // Update user's request in their account
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex(u => u.email === request.email);
-    if (userIndex !== -1 && users[userIndex].requests) {
-      const reqIndex = users[userIndex].requests.findIndex(r => r.id === request.id);
-      if (reqIndex !== -1) {
-        users[userIndex].requests[reqIndex].status = 'active';
-        users[userIndex].requests[reqIndex].credentials = credentials;
-        localStorage.setItem('users', JSON.stringify(users));
-      }
-    }
 
     // Decrement slot count
     const storedSlots = localStorage.getItem('availableSlots');

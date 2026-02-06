@@ -17,20 +17,25 @@ export default function UserDashboard() {
     // Check authentication
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
-      window.location.href = createPageUrl('Login');
+      window.location.href = createPageUrl('UserLogin');
       return;
     }
 
-    setUser(currentUser);
-    const userRequest = AuthService.getUserLatestRequest();
+    // CRITICAL: Re-fetch fresh user data from localStorage to get latest status
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const freshUser = users.find(u => u.email === currentUser.email);
     
-    // If request is active, fetch credentials from localStorage
-    if (userRequest && userRequest.status === 'active') {
-      const storedCreds = JSON.parse(localStorage.getItem('serverRequestsWithCreds') || '{}');
-      if (storedCreds[userRequest.id]) {
-        userRequest.credentials = storedCreds[userRequest.id];
-      }
+    if (!freshUser) {
+      window.location.href = createPageUrl('UserLogin');
+      return;
     }
+
+    setUser(freshUser);
+    
+    // Get the latest request from the fresh user data
+    const userRequest = freshUser.requests && freshUser.requests.length > 0 
+      ? freshUser.requests[freshUser.requests.length - 1] 
+      : null;
     
     setRequest(userRequest);
   }, []);
