@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Search, Users as UsersIcon, Shield, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { base44 } from '@/api/base44Client';
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -63,23 +64,29 @@ export default function AdminUsers() {
     }
   };
 
-  const handleDeleteUser = (user) => {
+  const handleDeleteUser = async (user) => {
     if (!window.confirm(`⚠️ Are you sure you want to delete "${user.name}"? This will also delete all their server requests and cannot be undone.`)) {
       return;
     }
 
-    // Delete user
-    const allUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    const filteredUsers = allUsers.filter(u => u.id !== user.id);
-    localStorage.setItem('users', JSON.stringify(filteredUsers));
+    try {
+      // Delete all associated ServerRequests from backend
+      const userRequests = await base44.entities.ServerRequest.filter({ created_by: user.email });
+      for (const request of userRequests) {
+        await base44.entities.ServerRequest.delete(request.id);
+      }
 
-    // Delete all associated requests
-    const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-    const filteredRequests = allRequests.filter(r => r.email !== user.email);
-    localStorage.setItem('serverRequests', JSON.stringify(filteredRequests));
+      // Delete user from localStorage (legacy system)
+      const allUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      const filteredUsers = allUsers.filter(u => u.id !== user.id);
+      localStorage.setItem('users', JSON.stringify(filteredUsers));
 
-    loadUsers();
-    toast.success(`User "${user.name}" and their requests deleted`);
+      loadUsers();
+      toast.success(`User "${user.name}" and their requests deleted`);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error('Failed to delete user. Please try again.');
+    }
   };
 
   const filteredUsers = users.filter(user =>

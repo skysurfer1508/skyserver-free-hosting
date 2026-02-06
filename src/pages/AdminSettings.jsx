@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Server, Bell, Shield, Database, Zap, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 const DEFAULT_SLOTS = { minecraft: 5, terraria: 5, satisfactory: 3 };
 
@@ -66,14 +67,27 @@ export default function AdminSettings() {
     setNewPassword('');
   };
 
-  const handleFactoryReset = () => {
+  const handleFactoryReset = async () => {
     if (window.confirm('⚠️ DANGER: This will permanently delete ALL data including users, requests, and settings. This action CANNOT be undone. Are you absolutely sure?')) {
       if (window.confirm('Last confirmation: Type YES in the next prompt to proceed.')) {
         const confirmation = window.prompt('Type YES to confirm factory reset:');
         if (confirmation === 'YES') {
-          localStorage.clear();
-          toast.success('Database cleared. Reloading...');
-          setTimeout(() => window.location.reload(), 1000);
+          try {
+            // Delete all ServerRequest entities from backend
+            const allRequests = await base44.entities.ServerRequest.list();
+            for (const request of allRequests) {
+              await base44.entities.ServerRequest.delete(request.id);
+            }
+            
+            // Clear localStorage (admin settings, slots, etc.)
+            localStorage.clear();
+            
+            toast.success('Database cleared. Reloading...');
+            setTimeout(() => window.location.reload(), 1000);
+          } catch (error) {
+            console.error('Failed to clear database:', error);
+            toast.error('Failed to clear database. Please try again.');
+          }
         } else {
           toast.error('Factory reset cancelled');
         }
