@@ -16,7 +16,9 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     discord: '',
     game: '',
     server_name: '',
-    message: ''
+    message: '',
+    minecraft_type: 'vanilla',
+    minecraft_version: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -55,9 +57,20 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       return;
     }
 
+    // Validate Minecraft-specific fields
+    if (formData.game === 'minecraft' && !formData.minecraft_version) {
+      toast.error('Please specify Minecraft version');
+      return;
+    }
+
     setIsSubmitting(true);
     
-    await base44.entities.ServerRequest.create(formData);
+    // Only include minecraft fields if game is minecraft
+    const submitData = formData.game === 'minecraft' 
+      ? formData 
+      : { ...formData, minecraft_type: undefined, minecraft_version: undefined };
+    
+    await base44.entities.ServerRequest.create(submitData);
     
     localStorage.setItem('hasRequestedServer', 'true');
     
@@ -208,6 +221,49 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                   required
                 />
               </div>
+
+              {/* Minecraft-Specific Fields */}
+              {formData.game === 'minecraft' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-6 pt-2"
+                >
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="minecraft_type" className="text-slate-300">
+                        Server Type <span className="text-sky-400">*</span>
+                      </Label>
+                      <Select value={formData.minecraft_type} onValueChange={(value) => handleChange('minecraft_type', value)}>
+                        <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-sky-500 text-white">
+                          <SelectValue placeholder="Select server type" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          <SelectItem value="vanilla" className="text-white hover:bg-slate-700">Vanilla (Standard)</SelectItem>
+                          <SelectItem value="paper" className="text-white hover:bg-slate-700">Paper / Spigot (Plugins)</SelectItem>
+                          <SelectItem value="fabric" className="text-white hover:bg-slate-700">Fabric (Mods)</SelectItem>
+                          <SelectItem value="forge" className="text-white hover:bg-slate-700">Forge (Mods)</SelectItem>
+                          <SelectItem value="neoforge" className="text-white hover:bg-slate-700">NeoForge (Mods)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="minecraft_version" className="text-slate-300">
+                        Game Version <span className="text-sky-400">*</span>
+                      </Label>
+                      <Input
+                        id="minecraft_version"
+                        value={formData.minecraft_version}
+                        onChange={(e) => handleChange('minecraft_version', e.target.value)}
+                        placeholder="e.g., 1.20.4 or 1.19.2"
+                        className="bg-slate-800/50 border-slate-700 focus:border-sky-500 text-white placeholder:text-slate-500"
+                        required={formData.game === 'minecraft'}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Message */}
               <div className="space-y-2">

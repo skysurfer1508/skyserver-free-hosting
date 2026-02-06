@@ -69,9 +69,17 @@ export default function RequestsTable({ requests, onApprove, onReject, onDelete,
                   {request.discord || '—'}
                 </td>
                 <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    <GameIcon className={`w-4 h-4 ${game.color}`} />
-                    <span className="text-slate-300 capitalize">{request.game}</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <GameIcon className={`w-4 h-4 ${game.color}`} />
+                      <span className="text-slate-300 capitalize">{request.game}</span>
+                    </div>
+                    {request.game === 'minecraft' && request.minecraft_version && (
+                      <div className="text-xs text-slate-500 mt-0.5 ml-6">
+                        {request.minecraft_type && `${request.minecraft_type === 'paper' ? 'Paper/Spigot' : request.minecraft_type.charAt(0).toUpperCase() + request.minecraft_type.slice(1)} • `}
+                        v{request.minecraft_version}
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-white font-medium">

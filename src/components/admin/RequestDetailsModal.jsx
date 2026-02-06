@@ -102,6 +102,30 @@ export default function RequestDetailsModal({ request, isOpen, onClose, onApprov
             <p className="text-white font-semibold text-lg capitalize">{request.game}</p>
           </div>
 
+          {/* Minecraft-Specific Details */}
+          {request.game === 'minecraft' && (request.minecraft_type || request.minecraft_version) && (
+            <div className="grid grid-cols-2 gap-4">
+              {request.minecraft_type && (
+                <div className="p-4 rounded-xl bg-slate-800/30">
+                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                    <ServerIcon className="w-4 h-4" />
+                    Server Type
+                  </div>
+                  <p className="text-white font-medium capitalize">{request.minecraft_type === 'paper' ? 'Paper / Spigot' : request.minecraft_type}</p>
+                </div>
+              )}
+              {request.minecraft_version && (
+                <div className="p-4 rounded-xl bg-slate-800/30">
+                  <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                    <Hash className="w-4 h-4" />
+                    Game Version
+                  </div>
+                  <p className="text-white font-medium">{request.minecraft_version}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Message */}
           <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
             <div className="flex items-center gap-2 text-slate-400 text-sm mb-2">
