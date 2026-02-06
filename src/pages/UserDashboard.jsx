@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Badge } from "@/components/ui/badge";
 import { base44 } from '@/api/base44Client';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 
 export default function UserDashboard() {
   const [user, setUser] = useState(null);
@@ -87,6 +88,7 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <SyncWarningBanner />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-900/20 via-transparent to-transparent" />
       
       {/* Header */}
