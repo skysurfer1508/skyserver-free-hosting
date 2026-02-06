@@ -157,9 +157,9 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/50"
+                    className="border-slate-700 text-white hover:text-white hover:bg-slate-800"
                   >
-                    <Link to={createPageUrl('Login')}>
+                    <Link to={createPageUrl('UserLogin')}>
                       <LogIn className="w-5 h-5 mr-2" />
                       Sign In
                     </Link>
