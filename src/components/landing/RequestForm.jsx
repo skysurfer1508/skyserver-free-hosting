@@ -28,11 +28,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   const [systemStatus, setSystemStatus] = useState('operational');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [gameSlots, setGameSlots] = useState({
-    minecraft: 10,
-    satisfactory: 5,
-    terraria: 5
-  });
+  const [games, setGames] = useState([]);
 
   useEffect(() => {
     // Check authentication
@@ -42,18 +38,18 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       setCurrentUser(AuthService.getCurrentUser());
     }
 
-    // Initialize and load game slots
-    const storedSlots = localStorage.getItem('gameSlots');
-    if (!storedSlots) {
-      const initialSlots = {
-        minecraft: 10,
-        satisfactory: 5,
-        terraria: 5
-      };
-      localStorage.setItem('gameSlots', JSON.stringify(initialSlots));
-      setGameSlots(initialSlots);
+    // Initialize and load games array
+    const storedGames = localStorage.getItem('games');
+    if (!storedGames) {
+      const initialGames = [
+        { name: 'minecraft', displayName: 'Minecraft (Java & Bedrock)', availableSlots: 10 },
+        { name: 'satisfactory', displayName: 'Satisfactory', availableSlots: 5 },
+        { name: 'terraria', displayName: 'Terraria', availableSlots: 5 }
+      ];
+      localStorage.setItem('games', JSON.stringify(initialGames));
+      setGames(initialGames);
     } else {
-      setGameSlots(JSON.parse(storedSlots));
+      setGames(JSON.parse(storedGames));
     }
   }, []);
 
@@ -120,11 +116,12 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     AuthService.addRequestToUser(newRequest);
     
     // Decrement available slots for the selected game
-    const currentSlots = JSON.parse(localStorage.getItem('gameSlots') || '{}');
-    if (currentSlots[formData.game] !== undefined && currentSlots[formData.game] > 0) {
-      currentSlots[formData.game] -= 1;
-      localStorage.setItem('gameSlots', JSON.stringify(currentSlots));
-      setGameSlots(currentSlots);
+    const currentGames = JSON.parse(localStorage.getItem('games') || '[]');
+    const gameIndex = currentGames.findIndex(g => g.name === formData.game);
+    if (gameIndex !== -1 && currentGames[gameIndex].availableSlots > 0) {
+      currentGames[gameIndex].availableSlots -= 1;
+      localStorage.setItem('games', JSON.stringify(currentGames));
+      setGames(currentGames);
     }
     
     localStorage.setItem('hasRequestedServer', 'true');
@@ -225,7 +222,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     );
   }
 
-  const totalSlotsAvailable = Object.values(gameSlots).reduce((sum, slots) => sum + slots, 0);
+  const totalSlotsAvailable = games.reduce((sum, game) => sum + game.availableSlots, 0);
   const allSoldOut = totalSlotsAvailable === 0;
 
   return (
@@ -343,27 +340,16 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                       <SelectValue placeholder="Select a game" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      <SelectItem 
-                        value="minecraft" 
-                        disabled={gameSlots.minecraft === 0}
-                        className="text-white hover:bg-slate-700"
-                      >
-                        Minecraft (Java & Bedrock) {gameSlots.minecraft === 0 ? '(Sold Out / 0 Slots left)' : `(${gameSlots.minecraft} slots)`}
-                      </SelectItem>
-                      <SelectItem 
-                        value="satisfactory" 
-                        disabled={gameSlots.satisfactory === 0}
-                        className="text-white hover:bg-slate-700"
-                      >
-                        Satisfactory {gameSlots.satisfactory === 0 ? '(Sold Out / 0 Slots left)' : `(${gameSlots.satisfactory} slots)`}
-                      </SelectItem>
-                      <SelectItem 
-                        value="terraria" 
-                        disabled={gameSlots.terraria === 0}
-                        className="text-white hover:bg-slate-700"
-                      >
-                        Terraria {gameSlots.terraria === 0 ? '(Sold Out / 0 Slots left)' : `(${gameSlots.terraria} slots)`}
-                      </SelectItem>
+                      {games.map((game) => (
+                        <SelectItem 
+                          key={game.name}
+                          value={game.name} 
+                          disabled={game.availableSlots === 0}
+                          className="text-white hover:bg-slate-700"
+                        >
+                          {game.displayName} {game.availableSlots === 0 ? '(SOLD OUT)' : `(${game.availableSlots} slots left)`}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
