@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Disallow private areas
+Disallow: /my-dashboard
+Disallow: /admin
+Disallow: /panel
+
+# Sitemap Location
+Sitemap: https://www.skyserver1508.org/sitemap.xml
