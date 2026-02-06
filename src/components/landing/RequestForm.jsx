@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from '@/api/base44Client';
-import { Server, Send, CheckCircle, Loader2, Sparkles, Clock, LogIn, UserPlus } from 'lucide-react';
+import { Server, Send, CheckCircle, Loader2, Sparkles, Clock, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
@@ -28,6 +28,11 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
   const [systemStatus, setSystemStatus] = useState('operational');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [gameSlots, setGameSlots] = useState({
+    minecraft: 10,
+    satisfactory: 5,
+    terraria: 5
+  });
 
   useEffect(() => {
     // Check authentication
@@ -35,6 +40,20 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     setIsAuthenticated(authenticated);
     if (authenticated) {
       setCurrentUser(AuthService.getCurrentUser());
+    }
+
+    // Initialize and load game slots
+    const storedSlots = localStorage.getItem('gameSlots');
+    if (!storedSlots) {
+      const initialSlots = {
+        minecraft: 10,
+        satisfactory: 5,
+        terraria: 5
+      };
+      localStorage.setItem('gameSlots', JSON.stringify(initialSlots));
+      setGameSlots(initialSlots);
+    } else {
+      setGameSlots(JSON.parse(storedSlots));
     }
   }, []);
 
@@ -99,6 +118,14 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     
     // Add request to user's data
     AuthService.addRequestToUser(newRequest);
+    
+    // Decrement available slots for the selected game
+    const currentSlots = JSON.parse(localStorage.getItem('gameSlots') || '{}');
+    if (currentSlots[formData.game] !== undefined && currentSlots[formData.game] > 0) {
+      currentSlots[formData.game] -= 1;
+      localStorage.setItem('gameSlots', JSON.stringify(currentSlots));
+      setGameSlots(currentSlots);
+    }
     
     localStorage.setItem('hasRequestedServer', 'true');
     
@@ -292,9 +319,27 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                       <SelectValue placeholder="Select a game" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      <SelectItem value="minecraft" className="text-white hover:bg-slate-700">Minecraft (Java & Bedrock)</SelectItem>
-                      <SelectItem value="satisfactory" className="text-white hover:bg-slate-700">Satisfactory</SelectItem>
-                      <SelectItem value="terraria" className="text-white hover:bg-slate-700">Terraria</SelectItem>
+                      <SelectItem 
+                        value="minecraft" 
+                        disabled={gameSlots.minecraft === 0}
+                        className="text-white hover:bg-slate-700"
+                      >
+                        Minecraft (Java & Bedrock) {gameSlots.minecraft === 0 ? '(Sold Out / 0 Slots left)' : `(${gameSlots.minecraft} slots)`}
+                      </SelectItem>
+                      <SelectItem 
+                        value="satisfactory" 
+                        disabled={gameSlots.satisfactory === 0}
+                        className="text-white hover:bg-slate-700"
+                      >
+                        Satisfactory {gameSlots.satisfactory === 0 ? '(Sold Out / 0 Slots left)' : `(${gameSlots.satisfactory} slots)`}
+                      </SelectItem>
+                      <SelectItem 
+                        value="terraria" 
+                        disabled={gameSlots.terraria === 0}
+                        className="text-white hover:bg-slate-700"
+                      >
+                        Terraria {gameSlots.terraria === 0 ? '(Sold Out / 0 Slots left)' : `(${gameSlots.terraria} slots)`}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -376,7 +421,7 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isSubmitting || systemStatus === 'maintenance'}
+                disabled={isSubmitting || systemStatus === 'maintenance' || allSoldOut}
                 className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white rounded-xl shadow-lg shadow-sky-500/25 transition-all duration-300 hover:shadow-sky-500/40 disabled:opacity-50"
               >
                 {isSubmitting ? (
@@ -388,6 +433,11 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
                   <span className="flex items-center justify-center gap-2">
                     <Clock className="w-5 h-5" />
                     Requests Temporarily Disabled
+                  </span>
+                ) : allSoldOut ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    All Slots Fully Booked
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
