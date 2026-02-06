@@ -102,49 +102,42 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
     }
 
     setIsSubmitting(true);
-    
-    // Only include minecraft fields if game is minecraft
-    const submitData = formData.game === 'minecraft' 
-      ? formData 
-      : { ...formData, minecraft_type: undefined, minecraft_version: undefined };
-    
-    // Create request in localStorage (no backend call)
-    const newRequest = {
-      ...submitData,
-      id: Date.now().toString(),
-      status: 'pending',
-      created_date: new Date().toISOString()
-    };
-    
-    // Save to global requests list for admin
-    const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-    allRequests.push(newRequest);
-    localStorage.setItem('serverRequests', JSON.stringify(allRequests));
-    
-    // Add request to user's data
-    AuthService.addRequestToUser(newRequest);
-    
-    // Decrement available slots for the selected game
-    const currentAvailability = JSON.parse(localStorage.getItem('availableSlots') || '{}');
-    if (currentAvailability[formData.game] !== undefined && currentAvailability[formData.game] > 0) {
-      currentAvailability[formData.game] -= 1;
-      localStorage.setItem('availableSlots', JSON.stringify(currentAvailability));
-      setAvailability(currentAvailability);
-      // Trigger event for other components
-      window.dispatchEvent(new Event('slotsUpdated'));
+
+    try {
+      // Only include minecraft fields if game is minecraft
+      const submitData = formData.game === 'minecraft' 
+        ? formData 
+        : { ...formData, minecraft_type: undefined, minecraft_version: undefined };
+
+      // Create request in backend database
+      await base44.entities.ServerRequest.create(submitData);
+
+      // Decrement available slots for the selected game
+      const currentAvailability = JSON.parse(localStorage.getItem('availableSlots') || '{}');
+      if (currentAvailability[formData.game] !== undefined && currentAvailability[formData.game] > 0) {
+        currentAvailability[formData.game] -= 1;
+        localStorage.setItem('availableSlots', JSON.stringify(currentAvailability));
+        setAvailability(currentAvailability);
+        // Trigger event for other components
+        window.dispatchEvent(new Event('slotsUpdated'));
+      }
+
+      localStorage.setItem('hasRequestedServer', 'true');
+
+      setIsSubmitted(true);
+      onSubmitSuccess?.();
+      toast.success('Request submitted successfully!');
+
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = createPageUrl('UserDashboard');
+      }, 1500);
+    } catch (error) {
+      toast.error('Failed to submit request. Please try again.');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    localStorage.setItem('hasRequestedServer', 'true');
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    onSubmitSuccess?.();
-    toast.success('Request submitted successfully!');
-    
-    // Redirect to dashboard
-    setTimeout(() => {
-      window.location.href = createPageUrl('UserDashboard');
-    }, 1500);
   };
 
   // Show login prompt if not authenticated

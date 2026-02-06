@@ -29,24 +29,17 @@ export default function AdminRequests() {
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['serverRequests'],
     queryFn: async () => {
-      // Load from localStorage instead of backend
-      const stored = localStorage.getItem('serverRequests');
-      const requests = stored ? JSON.parse(stored) : [];
-      return requests.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      // Fetch from backend database
+      const requests = await base44.entities.ServerRequest.list('-created_date');
+      return requests;
     },
     retry: false,
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }) => {
-      // Update in localStorage
-      const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-      const index = allRequests.findIndex(r => r.id === id);
-      if (index !== -1) {
-        allRequests[index].status = status;
-        localStorage.setItem('serverRequests', JSON.stringify(allRequests));
-      }
-      return Promise.resolve();
+      // Update in backend database
+      return base44.entities.ServerRequest.update(id, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
@@ -60,11 +53,8 @@ export default function AdminRequests() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => {
-      // Delete from localStorage
-      const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
-      const filtered = allRequests.filter(r => r.id !== id);
-      localStorage.setItem('serverRequests', JSON.stringify(filtered));
-      return Promise.resolve();
+      // Delete from backend database
+      return base44.entities.ServerRequest.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });

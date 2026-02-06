@@ -49,27 +49,27 @@
  */
 import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
+import AdminOverview from './pages/AdminOverview';
 import AdminRequests from './pages/AdminRequests';
 import AdminSettings from './pages/AdminSettings';
+import AdminUsers from './pages/AdminUsers';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import UserLogin from './pages/UserLogin';
-import AdminOverview from './pages/AdminOverview';
-import AdminUsers from './pages/AdminUsers';
 
 
 export const PAGES = {
     "Admin": Admin,
     "AdminLogin": AdminLogin,
+    "AdminOverview": AdminOverview,
     "AdminRequests": AdminRequests,
     "AdminSettings": AdminSettings,
+    "AdminUsers": AdminUsers,
     "Home": Home,
     "Register": Register,
     "UserDashboard": UserDashboard,
     "UserLogin": UserLogin,
-    "AdminOverview": AdminOverview,
-    "AdminUsers": AdminUsers,
 }
 
 export const pagesConfig = {
