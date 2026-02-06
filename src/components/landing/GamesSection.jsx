@@ -2,24 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Gamepad2 } from 'lucide-react';
 import GameCard from './GameCard';
+import { base44 } from '@/api/base44Client';
 
 const games = ['minecraft', 'satisfactory', 'terraria'];
 
-const getAvailability = () => {
-  const stored = localStorage.getItem('availableSlots');
-  return stored ? JSON.parse(stored) : { minecraft: 5, terraria: 5, satisfactory: 3 };
-};
-
 export default function GamesSection({ onGameSelect, hasRequested }) {
-  const [availability, setAvailability] = useState(getAvailability);
+  const [availableSlots, setAvailableSlots] = useState(0);
 
   useEffect(() => {
-    const handleSlotsUpdate = () => {
-      setAvailability(getAvailability());
+    const loadConfig = async () => {
+      try {
+        const configs = await base44.entities.SystemConfig.list();
+        if (configs && configs.length > 0) {
+          setAvailableSlots(configs[0].totalSlots - configs[0].claimedSlots);
+        }
+      } catch (error) {
+        console.error('Failed to load config:', error);
+      }
     };
 
-    window.addEventListener('slotsUpdated', handleSlotsUpdate);
-    return () => window.removeEventListener('slotsUpdated', handleSlotsUpdate);
+    loadConfig();
+    // Poll every 30 seconds for updates
+    const interval = setInterval(loadConfig, 30000);
+    return () => clearInterval(interval);
   }, []);
   return (
     <section id="games-section" className="relative py-32 bg-slate-900">
@@ -60,7 +65,7 @@ export default function GamesSection({ onGameSelect, hasRequested }) {
               key={game}
               game={game}
               index={index}
-              availableSlots={availability[game]}
+              availableSlots={availableSlots}
               onSelect={onGameSelect}
               disabled={hasRequested}
             />
