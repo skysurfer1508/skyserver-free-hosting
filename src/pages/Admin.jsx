@@ -8,6 +8,7 @@ import StatsCard from '@/components/admin/StatsCard';
 import RequestsTable from '@/components/admin/RequestsTable';
 import RequestDetailsModal from '@/components/admin/RequestDetailsModal';
 import ProvisioningModal from '@/components/admin/ProvisioningModal';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 import { Inbox, Clock, Zap, XCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -192,8 +193,10 @@ export default function Admin() {
   const recentActive = safeRequests.filter(r => r.status === 'active').slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
-      <AdminSidebar currentPage="Admin" onLogout={handleLogout} />
+    <>
+      <SyncWarningBanner />
+      <div className="min-h-screen bg-slate-950 flex">
+        <AdminSidebar currentPage="Admin" onLogout={handleLogout} />
       
       <main className="flex-1 p-8">
         {/* Header */}
@@ -284,6 +287,7 @@ export default function Admin() {
           onConfirm={handleProvisioningConfirm}
         />
       </main>
-    </div>
+      </div>
+    </>
   );
 }

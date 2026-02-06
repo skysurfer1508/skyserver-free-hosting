@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import RequestsTable from '@/components/admin/RequestsTable';
 import RequestDetailsModal from '@/components/admin/RequestDetailsModal';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -133,8 +134,10 @@ export default function AdminRequests() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
-      <AdminSidebar currentPage="AdminRequests" onLogout={handleLogout} />
+    <>
+      <SyncWarningBanner />
+      <div className="min-h-screen bg-slate-950 flex">
+        <AdminSidebar currentPage="AdminRequests" onLogout={handleLogout} />
       
       <main className="flex-1 p-8">
         {/* Header */}
@@ -201,6 +204,7 @@ export default function AdminRequests() {
           Showing {filteredRequests.length} of {safeRequests.length} requests
         </p>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

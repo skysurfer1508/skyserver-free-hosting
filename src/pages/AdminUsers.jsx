@@ -11,6 +11,7 @@ import { Pencil, Trash2, Search, Users as UsersIcon, Shield, User } from 'lucide
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { base44 } from '@/api/base44Client';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -104,8 +105,10 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
-      <AdminSidebar currentPage="AdminUsers" onLogout={handleLogout} />
+    <>
+      <SyncWarningBanner />
+      <div className="min-h-screen bg-slate-950 flex">
+        <AdminSidebar currentPage="AdminUsers" onLogout={handleLogout} />
       
       <main className="flex-1 p-8">
         {/* Header */}
@@ -264,6 +267,7 @@ export default function AdminUsers() {
           </DialogContent>
         </Dialog>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

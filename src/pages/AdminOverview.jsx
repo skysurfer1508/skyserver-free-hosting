@@ -5,6 +5,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { base44 } from '@/api/base44Client';
 import { Card } from "@/components/ui/card";
 import { Users, Server, TrendingUp, Gamepad2, RefreshCw } from 'lucide-react';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
@@ -97,8 +98,10 @@ export default function AdminOverview() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
-      <AdminSidebar currentPage="AdminOverview" onLogout={handleLogout} />
+    <>
+      <SyncWarningBanner />
+      <div className="min-h-screen bg-slate-950 flex">
+        <AdminSidebar currentPage="AdminOverview" onLogout={handleLogout} />
       
       <main className="flex-1 p-8">
         {/* Header */}
@@ -233,6 +236,7 @@ export default function AdminOverview() {
           </Card>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

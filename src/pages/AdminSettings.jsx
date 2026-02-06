@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Server, Bell, Shield, Database, Zap, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
+import SyncWarningBanner from '@/components/SyncWarningBanner';
 
 const DEFAULT_SLOTS = { minecraft: 5, terraria: 5, satisfactory: 3 };
 
@@ -96,8 +97,10 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
-      <AdminSidebar currentPage="AdminSettings" onLogout={handleLogout} />
+    <>
+      <SyncWarningBanner />
+      <div className="min-h-screen bg-slate-950 flex">
+        <AdminSidebar currentPage="AdminSettings" onLogout={handleLogout} />
       
       <main className="flex-1 p-8">
         {/* Header */}
@@ -318,6 +321,7 @@ export default function AdminSettings() {
           </Card>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
