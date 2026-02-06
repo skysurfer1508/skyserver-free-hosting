@@ -7,25 +7,29 @@ const techStack = [
     icon: Container,
     title: 'Dockerized',
     description: 'Full isolation for every game server using container technology.',
-    color: 'from-blue-500 to-cyan-500'
+    color: 'from-blue-500 to-cyan-500',
+    iconColor: 'text-cyan-400'
   },
   {
     icon: Shield,
     title: 'DDoS Protection',
     description: 'Secured by Cloudflare Tunnels and Global CDN.',
-    color: 'from-orange-500 to-amber-500'
+    color: 'from-orange-500 to-amber-500',
+    iconColor: 'text-amber-400'
   },
   {
     icon: Code,
     title: 'Modern Frontend',
     description: 'Blazing fast user interface built with the latest web standards.',
-    color: 'from-purple-500 to-pink-500'
+    color: 'from-purple-500 to-pink-500',
+    iconColor: 'text-pink-400'
   },
   {
     icon: Server,
     title: 'Smart Management',
     description: 'Advanced orchestration for reliable uptime.',
-    color: 'from-emerald-500 to-teal-500'
+    color: 'from-emerald-500 to-teal-500',
+    iconColor: 'text-teal-400'
   }
 ];
 
@@ -71,7 +75,7 @@ export default function TechStack() {
                 <div className="relative p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all duration-300 h-full flex flex-col">
                   {/* Icon */}
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tech.color} bg-opacity-10 flex items-center justify-center mb-4`}>
-                    <Icon className={`w-6 h-6 bg-gradient-to-br ${tech.color} bg-clip-text text-transparent`} style={{ WebkitTextFillColor: 'transparent' }} />
+                    <Icon className={`w-6 h-6 ${tech.iconColor}`} />
                   </div>
                   
                   {/* Title */}
