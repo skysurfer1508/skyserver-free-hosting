@@ -10,7 +10,7 @@ const getAvailability = () => {
   return stored ? JSON.parse(stored) : { minecraft: 5, terraria: 5, satisfactory: 3 };
 };
 
-export default function GamesSection({ onGameSelect }) {
+export default function GamesSection({ onGameSelect, hasRequested }) {
   const [availability, setAvailability] = useState(getAvailability);
 
   useEffect(() => {
@@ -62,6 +62,7 @@ export default function GamesSection({ onGameSelect }) {
               index={index}
               availableSlots={availability[game]}
               onSelect={onGameSelect}
+              disabled={hasRequested}
             />
           ))}
         </div>

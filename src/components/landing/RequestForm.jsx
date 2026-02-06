@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from '@/api/base44Client';
-import { Server, Send, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { Server, Send, CheckCircle, Loader2, Sparkles, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
-const RequestForm = forwardRef(({ selectedGame }, ref) => {
+const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess }, ref) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,12 +43,15 @@ const RequestForm = forwardRef(({ selectedGame }, ref) => {
     
     await base44.entities.ServerRequest.create(formData);
     
+    localStorage.setItem('hasRequestedServer', 'true');
+    
     setIsSubmitting(false);
     setIsSubmitted(true);
+    onSubmitSuccess?.();
     toast.success('Request submitted successfully!');
   };
 
-  if (isSubmitted) {
+  if (isSubmitted || hasRequested) {
     return (
       <section ref={ref} id="request" className="relative py-32 bg-slate-950">
         <div className="max-w-2xl mx-auto px-6">
@@ -57,23 +60,16 @@ const RequestForm = forwardRef(({ selectedGame }, ref) => {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center p-12 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-900/50 border border-emerald-500/30"
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/25">
-              <CheckCircle className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-sky-500/25">
+              <Clock className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-3xl font-bold text-white mb-4">Request Submitted!</h3>
-            <p className="text-slate-400 mb-6">
-              Thanks for your request! I'll review it and get back to you within 24-48 hours via email.
+            <h3 className="text-3xl font-bold text-white mb-4">Request Pending</h3>
+            <p className="text-slate-400 mb-2">
+              You have already requested a server. Please wait for approval.
             </p>
-            <Button
-              onClick={() => {
-                setIsSubmitted(false);
-                setFormData({ name: '', email: '', discord: '', game: '', server_name: '', message: '' });
-              }}
-              variant="outline"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
-            >
-              Submit Another Request
-            </Button>
+            <p className="text-sky-400 text-sm">
+              You'll receive an email notification once your request has been reviewed (24-48 hours).
+            </p>
           </motion.div>
         </div>
       </section>

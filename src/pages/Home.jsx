@@ -8,6 +8,12 @@ import Footer from '@/components/landing/Footer';
 export default function Home() {
   const formRef = useRef(null);
   const [selectedGame, setSelectedGame] = useState('');
+  const [hasRequested, setHasRequested] = useState(false);
+
+  React.useEffect(() => {
+    const requested = localStorage.getItem('hasRequestedServer') === 'true';
+    setHasRequested(requested);
+  }, []);
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,8 +30,8 @@ export default function Home() {
     <div className="min-h-screen bg-slate-950">
       <HeroSection onCTAClick={scrollToForm} />
       <TrustSection />
-      <GamesSection onGameSelect={handleGameSelect} />
-      <RequestForm ref={formRef} selectedGame={selectedGame} />
+      <GamesSection onGameSelect={handleGameSelect} hasRequested={hasRequested} />
+      <RequestForm ref={formRef} selectedGame={selectedGame} hasRequested={hasRequested} onSubmitSuccess={() => setHasRequested(true)} />
       <Footer />
     </div>
   );

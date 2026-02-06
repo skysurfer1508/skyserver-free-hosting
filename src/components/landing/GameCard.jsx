@@ -52,7 +52,7 @@ const gameData = {
   }
 };
 
-export default function GameCard({ game, onSelect, index, availableSlots }) {
+export default function GameCard({ game, onSelect, index, availableSlots, disabled }) {
   const Icon = gameIcons[game];
   const colors = gameColors[game];
   const data = gameData[game];
@@ -145,11 +145,12 @@ export default function GameCard({ game, onSelect, index, availableSlots }) {
         {/* CTA */}
         <Button
           onClick={() => onSelect(game)}
-          className={`w-full bg-gradient-to-r ${colors.gradient} hover:opacity-90 text-white font-semibold py-6 rounded-xl transition-all duration-300 group-hover:shadow-lg ${colors.glow}`}
+          disabled={disabled}
+          className={`w-full bg-gradient-to-r ${colors.gradient} hover:opacity-90 text-white font-semibold py-6 rounded-xl transition-all duration-300 group-hover:shadow-lg ${colors.glow} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <span className="flex items-center justify-center gap-2">
-            Select {data.title}
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            {disabled ? 'Already Requested' : `Select ${data.title}`}
+            {!disabled && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
           </span>
         </Button>
       </div>

@@ -2,6 +2,11 @@ import React from 'react';
 import { Server, MessageCircle, Github, Heart } from 'lucide-react';
 
 export default function Footer() {
+  const handleResetStorage = () => {
+    localStorage.removeItem('hasRequestedServer');
+    window.location.reload();
+  };
+
   return (
     <footer className="relative py-12 bg-slate-950 border-t border-slate-800">
       <div className="max-w-6xl mx-auto px-6">
