@@ -91,6 +91,17 @@ export default function Header() {
               </span>
             </div>
 
+            <Button
+              asChild
+              variant="ghost"
+              className="text-slate-300 hover:text-white hover:bg-slate-800/50 hidden sm:flex"
+            >
+              <a href="https://panel.skyserver1508.org" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Panel Login
+              </a>
+            </Button>
+
             {isAuthenticated ? (
               <>
                 <Button

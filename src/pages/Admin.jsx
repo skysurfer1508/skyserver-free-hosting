@@ -28,18 +28,25 @@ export default function Admin() {
   const { data: requests = [], isLoading, error } = useQuery({
     queryKey: ['serverRequests'],
     queryFn: async () => {
-      try {
-        return await base44.entities.ServerRequest.list('-created_date');
-      } catch (err) {
-        console.error('Failed to load requests:', err);
-        return [];
-      }
+      // Load from localStorage instead of backend
+      const stored = localStorage.getItem('serverRequests');
+      const requests = stored ? JSON.parse(stored) : [];
+      return requests.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     retry: false,
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.ServerRequest.update(id, { status }),
+    mutationFn: ({ id, status }) => {
+      // Update in localStorage
+      const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
+      const index = allRequests.findIndex(r => r.id === id);
+      if (index !== -1) {
+        allRequests[index].status = status;
+        localStorage.setItem('serverRequests', JSON.stringify(allRequests));
+      }
+      return Promise.resolve();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
       toast.success('Request updated successfully');
@@ -51,7 +58,13 @@ export default function Admin() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.ServerRequest.delete(id),
+    mutationFn: (id) => {
+      // Delete from localStorage
+      const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
+      const filtered = allRequests.filter(r => r.id !== id);
+      localStorage.setItem('serverRequests', JSON.stringify(filtered));
+      return Promise.resolve();
+    },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
       toast.success('Server terminated successfully');
@@ -87,18 +100,31 @@ export default function Admin() {
   const handleProvisioningConfirm = async (credentials) => {
     const request = provisioningRequest;
     
-    // Update request with credentials and status
-    const updateData = {
-      status: 'active',
-      credentials: credentials
-    };
+    // Update request in localStorage with credentials
+    const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
+    const index = allRequests.findIndex(r => r.id === request.id);
+    if (index !== -1) {
+      allRequests[index].status = 'active';
+      allRequests[index].credentials = credentials;
+      localStorage.setItem('serverRequests', JSON.stringify(allRequests));
+    }
     
-    await updateMutation.mutateAsync({ id: request.id, status: updateData.status });
-    
-    // Store credentials separately in localStorage for the request
+    // Store credentials separately for easier access
     const storedRequests = JSON.parse(localStorage.getItem('serverRequestsWithCreds') || '{}');
     storedRequests[request.id] = credentials;
     localStorage.setItem('serverRequestsWithCreds', JSON.stringify(storedRequests));
+
+    // Update user's request in their account
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const userIndex = users.findIndex(u => u.email === request.email);
+    if (userIndex !== -1 && users[userIndex].requests) {
+      const reqIndex = users[userIndex].requests.findIndex(r => r.id === request.id);
+      if (reqIndex !== -1) {
+        users[userIndex].requests[reqIndex].status = 'active';
+        users[userIndex].requests[reqIndex].credentials = credentials;
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    }
 
     // Decrement slot count
     const storedSlots = localStorage.getItem('availableSlots');
@@ -107,6 +133,7 @@ export default function Admin() {
     localStorage.setItem('availableSlots', JSON.stringify(slots));
     window.dispatchEvent(new Event('slotsUpdated'));
 
+    queryClient.invalidateQueries({ queryKey: ['serverRequests'] });
     setProvisioningRequest(null);
     toast.success('Server activated successfully!');
   };

@@ -84,14 +84,21 @@ const RequestForm = forwardRef(({ selectedGame, hasRequested, onSubmitSuccess },
       ? formData 
       : { ...formData, minecraft_type: undefined, minecraft_version: undefined };
     
-    const createdRequest = await base44.entities.ServerRequest.create(submitData);
+    // Create request in localStorage (no backend call)
+    const newRequest = {
+      ...submitData,
+      id: Date.now().toString(),
+      status: 'pending',
+      created_date: new Date().toISOString()
+    };
+    
+    // Save to global requests list for admin
+    const allRequests = JSON.parse(localStorage.getItem('serverRequests') || '[]');
+    allRequests.push(newRequest);
+    localStorage.setItem('serverRequests', JSON.stringify(allRequests));
     
     // Add request to user's data
-    AuthService.addRequestToUser({
-      ...submitData,
-      id: createdRequest.id,
-      status: 'pending'
-    });
+    AuthService.addRequestToUser(newRequest);
     
     localStorage.setItem('hasRequestedServer', 'true');
     
