@@ -25,13 +25,16 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <a 
-              href="#" 
-              className="flex items-center gap-2 text-slate-400 hover:text-sky-400 transition-colors text-sm"
+              href="https://discord.gg/4apa75XS9Q" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all hover:scale-105 hover:shadow-lg"
+              style={{ backgroundColor: '#5865F2', color: 'white' }}
             >
               <MessageCircle className="w-4 h-4" />
-              Discord Community
+              Join Discord
             </a>
             <a 
               href="#" 
