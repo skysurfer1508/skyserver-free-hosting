@@ -18,7 +18,7 @@ export default function SyncWarningBanner() {
             size="sm"
             className="bg-amber-900 hover:bg-amber-950 text-white"
           >
-            <a href="https://discord.gg/your-discord-link" target="_blank" rel="noopener noreferrer">
+            <a href="https://discord.gg/skyserver" target="_blank" rel="noopener noreferrer">
               Open Discord Ticket
             </a>
           </Button>
