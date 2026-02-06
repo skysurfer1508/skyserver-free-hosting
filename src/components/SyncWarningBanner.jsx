@@ -13,15 +13,18 @@ export default function SyncWarningBanner() {
               <span className="font-bold">Action Required:</span> Due to the current synchronization error, requests cannot be processed automatically. You <span className="font-bold">MUST open a ticket on our Discord</span> to get your server approved manually.
             </p>
           </div>
-          <Button
-            asChild
-            size="sm"
-            className="bg-amber-900 hover:bg-amber-950 text-white"
+          <a
+            href="https://discord.gg/pNMVZJrTcv"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <a href="https://discord.gg/skyserver" target="_blank" rel="noopener noreferrer">
+            <Button
+              size="sm"
+              className="bg-amber-900 hover:bg-amber-950 text-white"
+            >
               Open Discord Ticket
-            </a>
-          </Button>
+            </Button>
+          </a>
         </div>
       </div>
     </div>
