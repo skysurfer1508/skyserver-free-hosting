@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Pickaxe, Factory, Worm, Clock, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Check, X, Pickaxe, Factory, Worm, Clock, CheckCircle, XCircle, Zap, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const gameIcons = {
@@ -17,8 +17,10 @@ const statusConfig = {
   rejected: { label: 'Rejected', color: 'bg-red-500/10 text-red-400 border-red-500/20', icon: XCircle },
 };
 
-export default function RequestsTable({ requests, onApprove, onReject, showActions = true, onRowClick }) {
-  if (!requests || requests.length === 0) {
+export default function RequestsTable({ requests, onApprove, onReject, onDelete, showActions = true, showDeleteButton = false, onRowClick }) {
+  const safeRequests = Array.isArray(requests) ? requests : [];
+  
+  if (safeRequests.length === 0) {
     return (
       <div className="text-center py-12 text-slate-500">
         No requests found.
@@ -41,7 +43,7 @@ export default function RequestsTable({ requests, onApprove, onReject, showActio
           </tr>
         </thead>
         <tbody>
-          {requests.map((request) => {
+          {safeRequests.map((request) => {
             const game = gameIcons[request.game] || gameIcons.minecraft;
             const GameIcon = game.icon;
             const status = statusConfig[request.status] || statusConfig.pending;
@@ -110,6 +112,20 @@ export default function RequestsTable({ requests, onApprove, onReject, showActio
                             Reject
                           </Button>
                         </>
+                      )}
+                      {request.status === 'active' && showDeleteButton && onDelete && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(request.id);
+                          }}
+                          className="text-red-400 hover:bg-red-500/10 hover:text-red-400"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Terminate
+                        </Button>
                       )}
                     </div>
                   </td>
