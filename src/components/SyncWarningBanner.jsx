@@ -24,7 +24,7 @@ export default function SyncWarningBanner() {
           </div>
           <div className="flex items-center gap-3">
             <a
-              href="https://discord.gg/pNMVZJrTcv"
+              href="https://discord.gg/4apa75XS9Q"
               target="_blank"
               rel="noopener noreferrer"
             >
